@@ -1,0 +1,17 @@
+modules:
+  confluence:spacePage:
+    - key: confluence-reports-ui-hello-world-space-page
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+      title: Confluence-Reports-UI
+      route: hello-world
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: src/frontend/index.jsx
+app:
+  id: ari:cloud:ecosystem::app/b7d47581-2ab2-446a-b7f6-ef2cd00b3db5
