@@ -1,0 +1,10 @@
+import { AvatarUrls, User, Worklog, WorklogDictionary, Worklogs } from './interfaces';
+export declare function getUsers(): User[];
+export declare function getColumnNames(): string[];
+export declare function getWorklogs(): Worklogs[][];
+export declare function getDateRangeLogs(logDate: string, endDate: string): Worklogs[][];
+export declare function searchByText(text: string): Worklogs[][];
+export declare function getWorklogByProject(project: string): Worklogs[][];
+export declare function getUserWorklogDictionary(): WorklogDictionary[];
+export declare function generateAvatarUrls(): AvatarUrls;
+export declare function generateMockWorklog(number: number): Worklog[];

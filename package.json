@@ -15,6 +15,8 @@
     "@forge/bridge": "3.3.0",
     "@forge/react": "10.1.0",
     "@forge/resolver": "1.5.31",
+    "@forge/ui": "^1.11.1",
+    "date-fns": "^3.6.0",
     "react": "^18.2.0"
   }
 }
