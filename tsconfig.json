@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [ "webpack.config.js", "src/index.js", ],
+  "include": ["src/**/*.jsx", "src/index.tsx", "src/**/*.ts", "src/**/*.tsx",],
+  "exclude": ["node_modules", "dist", "build", "coverage", "webpack.config.js","src/**/*.d.ts"],
+  "references": [
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ],
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "composite": true,
+    "declaration": true,
+    "jsx": "react",
+  }
+}

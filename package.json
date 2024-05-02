@@ -8,6 +8,7 @@
     "lint": "./node_modules/.bin/eslint src/**/*"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0"
   },
@@ -16,6 +17,8 @@
     "@forge/react": "10.1.0",
     "@forge/resolver": "1.5.31",
     "@forge/ui": "^1.11.1",
+    "axios": "^1.6.8",
+    "buffer": "^6.0.3",
     "date-fns": "^3.6.0",
     "react": "^18.2.0"
   }

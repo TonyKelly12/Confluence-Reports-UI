@@ -104,8 +104,8 @@ export const TableSorted = () => {
   const initData = async () => {
     const data = await mockAPI.getWorklogs();
     await fetchColumnNames();
-    const flattenedData = createFlatMap(data);
-    await setFilteredData(flattenedData);
+    // const flattenedData = createFlatMap(data);
+    await setFilteredData(data);
   };
 
   // Table Hooks //

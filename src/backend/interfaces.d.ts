@@ -1,3 +1,4 @@
+/// <reference types="react" />
 export interface FormattedWorklog {
     'Avatar': string;
     'Author ID': string;
