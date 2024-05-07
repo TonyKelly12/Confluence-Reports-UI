@@ -69,37 +69,37 @@ export const TableSorted = () => {
   //   return data;
   // };
 
-  const createFlatMap = (data: Worklogs[][]) => {
-    return data.flatMap((row) => {
-      return row.map((log) => {
-        const fltData: FormattedWorklog = {
-          Avatar: log.Worklog.author.avatar,
-          'Author ID': log.Worklog.author.userID,
-          'Author Name': log.Worklog.author.displayName,
-          'User Link': log.Worklog.author.self,
-          Department: log.Worklog.department,
-          'Department Ledger Code': log.Worklog.departmentLedgerCode,
-          'Log ID': log.Worklog.tempoWorklogId,
-          'Account ID': log.Worklog.accountId,
-          'Account Name': log.Worklog.accountName,
-          'Issue Name': log.Worklog.issue.issueName,
-          'Issue ID': log.Worklog.issue.id.toString(),
-          'Issue Link': log.Worklog.issue.self,
-          'Logged Date': log.Worklog.loggedDate,
-          'Logged Time': log.Worklog.loggedTime,
-          'Created At': log.Worklog.createdAt,
-          'Updated At': log.Worklog.updatedAt,
-          'Time Spent': parseFloat(
-            convertSecondsToHours(log.Worklog.timeSpentSeconds).toFixed(1)
-          ),
-          Billable: parseFloat(
-            convertSecondsToHours(log.Worklog.billableSeconds).toFixed(1)
-          ),
-        };
-        return fltData;
-      });
-    });
-  };
+  // const createFlatMap = (data: Worklogs[][]) => {
+  //   return data.flatMap((row) => {
+  //     return row.map((log) => {
+  //       const fltData: FormattedWorklog = {
+  //         Avatar: log.Worklog.author.avatar,
+  //         'Author ID': log.Worklog.author.userID,
+  //         'Author Name': log.Worklog.author.displayName,
+  //         'User Link': log.Worklog.author.self,
+  //         Department: log.Worklog.department,
+  //         'Department Ledger Code': log.Worklog.departmentLedgerCode,
+  //         'Log ID': log.Worklog.tempoWorklogId,
+  //         'Account ID': log.Worklog.accountId,
+  //         'Account Name': log.Worklog.accountName,
+  //         'Issue Name': log.Worklog.issue.issueName,
+  //         'Issue ID': log.Worklog.issue.id.toString(),
+  //         'Issue Link': log.Worklog.issue.self,
+  //         'Logged Date': log.Worklog.loggedDate,
+  //         'Logged Time': log.Worklog.loggedTime,
+  //         'Created At': log.Worklog.createdAt,
+  //         'Updated At': log.Worklog.updatedAt,
+  //         'Time Spent': parseFloat(
+  //           convertSecondsToHours(log.Worklog.timeSpentSeconds).toFixed(1)
+  //         ),
+  //         Billable: parseFloat(
+  //           convertSecondsToHours(log.Worklog.billableSeconds).toFixed(1)
+  //         ),
+  //       };
+  //       return fltData;
+  //     });
+  //   });
+  // };
 
   const initData = async () => {
     const data = await mockAPI.getWorklogs();
@@ -118,23 +118,21 @@ export const TableSorted = () => {
 
       fetchColumnNames();
     }
-    const searchByText = async (data: Worklogs[][], text: string) => {
+    const searchByText = async (data: Worklogs[], text: string) => {
       let logs = data;
-      if (!logs) logs = [[]];
+      if (!logs) logs = [];
 
       return logs
-        .map((logArray) => {
-          return logArray.filter((log) => {
+        .map((log) => {
             return (
-              log.Worklog.author.displayName
+              log["Author Name"]
                 .toLowerCase()
                 .includes(text.toLowerCase()) ||
-              log.Worklog.issue.issueName
+              log["Issue Name"]
                 .toLowerCase()
                 .includes(text.toLowerCase()) ||
-              log.Worklog.accountName.toLowerCase().includes(text.toLowerCase())
+              log["Account Name"].toLowerCase().includes(text.toLowerCase())
             );
-          });
         })
         .filter((logArray) => logArray.length > 0); // Remove empty sub-arrays
     };
@@ -150,23 +148,23 @@ export const TableSorted = () => {
 
         const newTimeoutId = setTimeout(async () => {
           const filteredLogs = await searchByText(data, searchText);
-          filteredLogs ?? [[]];
+          filteredLogs ?? [];
 
           const flattenedData = filteredLogs.map((row) => {
             return row;
           });
-          const flatData = createFlatMap(flattenedData);
-          setFilteredData(flatData);
+          // const flatData = createFlatMap(flattenedData);
+          setFilteredData(flattenedData);
         }, 800);
         setTimeoutId(newTimeoutId);
       } else {
-        updatedData ?? [[]];
+        updatedData ?? [];
 
         const flattenedData = data.map((row) => {
           return row;
         });
-        const flatData = createFlatMap(flattenedData);
-        setFilteredData(flatData);
+        
+        setFilteredData(flattenedData);
       }
     });
   }, [selectedFromDate, selectedToDate, searchText, isChecked]);
@@ -202,8 +200,8 @@ export const TableSorted = () => {
     const dataLayer = updatedData.map((row) => {
       return row;
     });
-    const flatData = createFlatMap(dataLayer);
-    await setFilteredData(flatData);
+    
+    await setFilteredData(dataLayer);
   };
 
   const onToDateChange = async (value: string) => {
@@ -217,8 +215,7 @@ export const TableSorted = () => {
     const dataLayer = updatedData.map((row) => {
       return row;
     });
-    const flatData = createFlatMap(dataLayer);
-    await setFilteredData(flatData);
+    await setFilteredData(dataLayer);
     // await setRows(createRows(updatedData));
   };
 

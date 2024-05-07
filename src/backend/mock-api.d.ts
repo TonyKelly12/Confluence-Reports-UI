@@ -2,7 +2,7 @@ import { AvatarUrls, User, Worklog, WorklogDictionary, Worklogs } from './interf
 export declare function getUsers(): User[];
 export declare function getColumnNames(): string[];
 export declare function getWorklogs(): Promise<any>;
-export declare function getDateRangeLogs(logDate: string, endDate: string): Promise<any>;
+export declare function getDateRangeLogs(startDate: string, endDate: string): Promise<any>;
 export declare function searchByText(text: string): Promise<any>;
 export declare function getWorklogByProject(project: string): Promise<Worklogs[][]>;
 export declare function getUserWorklogDictionary(): WorklogDictionary[];

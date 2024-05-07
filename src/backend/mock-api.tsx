@@ -62,42 +62,41 @@ export function getColumnNames(): string[] {
 }
 
 export async function getWorklogs() {
-  const resp = await axios.get('https://tempo-jira-api-production.up.railway.app/api/worklogs/data-table')
+  const resp = await axios.get('https://tempo-jira-api-production.up.railway.app/worklogs/data-table')
   return resp.data;
 }
 
 // Fix below
-export async  function getDateRangeLogs(logDate: string, endDate: string) {
+export async  function getDateRangeLogs(startDate: string, endDate: string) {
   const logs = await getWorklogs();
-  const start = new Date(logDate);
+  const start = new Date(startDate);
   start.setHours(0, 0, 0, 0);
   const end = new Date(endDate);
   end.setHours(23, 59, 59, 999);
 
   const filteredLogs = logs
-    .map((logArray) => {
-      return logArray.filter((log) => {
-        const logDate = new Date(log.Worklog.loggedDate);
+    .map((log) => {
+        const logDate = new Date(log["Logged Date"]);
+        console.log('logDate', logDate);
         logDate.setHours(0, 0, 0, 0);
         return logDate >= start && logDate <= end;
-      });
     })
     .filter((logArray) => logArray.length > 0); // Remove empty sub-arrays
 
   console.log('filteredLogs', filteredLogs);
-  return filteredLogs;
+  return logs;
 }
 
 export async function searchByText(text: string) {
   const logs =  await getWorklogs();
   return logs
-    .map((logArray) => {
-      return logArray.filter((log) => {
+    .map((log) => {
+     
         return (
-          log.Worklog.author.displayName === text ||
-          log.Worklog.issue.issueName === text
+          log["Author Name"] === text ||
+          log["Issue Name"] === text
         );
-      });
+      
     })
     .filter((logArray) => logArray.length > 0); // Remove empty sub-arrays
 }

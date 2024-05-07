@@ -15,3 +15,23 @@ resources:
     path: src/frontend/index.jsx
 app:
   id: ari:cloud:ecosystem::app/b7d47581-2ab2-446a-b7f6-ef2cd00b3db5
+  runtime: 
+    name: nodejs18.x
+permissions:
+  external:
+    fetch:
+      backend:
+        - remote: tempo-jira-api
+        - remote: atlassian-metal-ingest
+      client:
+        - remote: tempo-jira-api
+        - remote: atlassian-metal-ingest
+remotes:
+  - key: tempo-jira-api
+    baseUrl: https://tempo-jira-api-production.up.railway.app
+    operations:
+      - fetch
+  - key: atlassian-metal-ingest
+    baseUrl: https://api.atlassian.com/metal/ingest
+    operations:
+      - fetch
