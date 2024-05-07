@@ -21,6 +21,7 @@ import {
   ModalHeader,
   Icon,
   Toggle,
+  User
 } from '@forge/react';
 import React, { Fragment, useState, useEffect } from 'react';
 import { subMonths, addMonths } from 'date-fns';
@@ -436,7 +437,7 @@ export const TableSorted = () => {
                     case 'Avatar':
                       content = (
                         <Box xcss={cardStyle}>
-                          <Image src={value} size="large"></Image>
+                          <User accountId={row['Author ID']}/>
                         </Box>
                       );
                       break;
