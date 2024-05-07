@@ -61,47 +61,6 @@ export const TableSorted = () => {
     initializeVisibility(response);
   };
 
-  // const getWorklogDictionary = async () => {
-  //   // Mock Data
-  //   const data = await mockAPI.getDateRangeLogs(
-  //     subMonths(new Date(), 2).toISOString(),
-  //     addMonths(new Date(), 2).toISOString()
-  //   );
-  //   return data;
-  // };
-
-  // const createFlatMap = (data: Worklogs[][]) => {
-  //   return data.flatMap((row) => {
-  //     return row.map((log) => {
-  //       const fltData: FormattedWorklog = {
-  //         Avatar: log.Worklog.author.avatar,
-  //         'Author ID': log.Worklog.author.userID,
-  //         'Author Name': log.Worklog.author.displayName,
-  //         'User Link': log.Worklog.author.self,
-  //         Department: log.Worklog.department,
-  //         'Department Ledger Code': log.Worklog.departmentLedgerCode,
-  //         'Log ID': log.Worklog.tempoWorklogId,
-  //         'Account ID': log.Worklog.accountId,
-  //         'Account Name': log.Worklog.accountName,
-  //         'Issue Name': log.Worklog.issue.issueName,
-  //         'Issue ID': log.Worklog.issue.id.toString(),
-  //         'Issue Link': log.Worklog.issue.self,
-  //         'Logged Date': log.Worklog.loggedDate,
-  //         'Logged Time': log.Worklog.loggedTime,
-  //         'Created At': log.Worklog.createdAt,
-  //         'Updated At': log.Worklog.updatedAt,
-  //         'Time Spent': parseFloat(
-  //           convertSecondsToHours(log.Worklog.timeSpentSeconds).toFixed(1)
-  //         ),
-  //         Billable: parseFloat(
-  //           convertSecondsToHours(log.Worklog.billableSeconds).toFixed(1)
-  //         ),
-  //       };
-  //       return fltData;
-  //     });
-  //   });
-  // };
-
   const initData = async () => {
     const data = await mockAPI.getWorklogs();
     await fetchColumnNames();
@@ -233,16 +192,18 @@ export const TableSorted = () => {
   const exportCSVData = async () => {
     const data = await getWorklogByDateRange(selectedFromDate, selectedToDate);
     const flattenedData = data.flat();
+    const headers = ['Author ID', 'Author Name', 'Created At', 'Logged Date', 'Issue Name', 'Department', 'Department Ledger Code', 'Time Spent', 'Billable'];
     // CSV
     const csv = flattenedData.map((row) => {
-      return `${row.Worklog.author.userID},${row.Worklog.author.displayName},${
-        row.Worklog.createdAt
-      },${row.Worklog.loggedDate},${row.Worklog.issue.issueName},${
-        row.Worklog.department
-      },${row.Worklog.departmentLedgerCode},${convertSecondsToHours(
-        row.Worklog.billableSeconds
-      )},${row.Worklog.loggedTime}`;
+      return `${row['Author ID']},${row['Author Name']},${
+        row['Created At']
+      },${row['Logged Date']},${row['Issue Name']},${
+        row['Department']
+      },${row['Department Ledger Code']},${convertSecondsToHours(
+        row['Time Spent']
+      )},${convertSecondsToHours(row['Billable'])}`;
     });
+    csv.unshift(headers.join(',')); // Add headers to the start of the array
     const csvString = csv.join('\n');
     const csvBlob = new Blob([csvString], { type: 'text/csv' });
     const csvUrl = URL.createObjectURL(csvBlob);
@@ -250,58 +211,11 @@ export const TableSorted = () => {
     csvLink.href = csvUrl;
     csvLink.download = 'worklog.csv';
     csvLink.click();
-
-    // JSON
-    const jsonString = JSON.stringify(data, null, 2);
-    const jsonBlob = new Blob([jsonString], { type: 'application/json' });
-    const jsonUrl = URL.createObjectURL(jsonBlob);
-    const jsonLink = document.createElement('a');
-    jsonLink.href = jsonUrl;
-    jsonLink.download = 'worklog.json';
-    jsonLink.click();
   };
 
   const exportJSONData = async () => {
     const data = await getWorklogByDateRange(selectedFromDate, selectedToDate);
-    const flattenedData = data.flat();
-    // CSV
-    const headers = [
-      'Avatar',
-      'Author ID',
-      'Author Name',
-      'User Link',
-      'Department',
-      'Department Ledger Code',
-      'Account ID',
-      'Account Name',
-      'Issue Name',
-      'Issue ID',
-      'Issue Link',
-      'Logged Date',
-      'Logged Time',
-      'Created At',
-      'Updated At',
-      'Time Spent',
-      'Billable',
-    ];
-    const csv = flattenedData.map((row) => {
-      return `${row.Worklog.author.userID},${row.Worklog.author.displayName},${
-        row.Worklog.createdAt
-      },${row.Worklog.loggedDate},${row.Worklog.issue.issueName},${
-        row.Worklog.department
-      },${row.Worklog.departmentLedgerCode}, ${convertSecondsToHours(
-        row.Worklog.billableSeconds
-      )},${row.Worklog.loggedTime}`;
-    });
-    csv.unshift(headers.join(','));
-    const csvString = csv.join('\n');
-    const csvBlob = new Blob([csvString], { type: 'text/csv' });
-    const csvUrl = URL.createObjectURL(csvBlob);
-    const csvLink = document.createElement('a');
-    csvLink.href = csvUrl;
-    csvLink.download = 'worklog.csv';
-    csvLink.click();
-
+     
     // JSON
     const jsonString = JSON.stringify(data, null, 2);
     const jsonBlob = new Blob([jsonString], { type: 'application/json' });
