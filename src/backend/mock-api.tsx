@@ -74,31 +74,27 @@ export async  function getDateRangeLogs(startDate: string, endDate: string) {
   const end = new Date(endDate);
   end.setHours(23, 59, 59, 999);
 
-  const filteredLogs = logs
-    .map((log) => {
-        const logDate = new Date(log["Logged Date"]);
-        console.log('logDate', logDate);
-        logDate.setHours(0, 0, 0, 0);
-        return logDate >= start && logDate <= end;
-    })
-    .filter((logArray) => logArray.length > 0); // Remove empty sub-arrays
+  const filteredLogs = logs.filter((log) => {
+    const logDate = new Date(log["Logged Date"]);
+    logDate.setHours(0, 0, 0, 0);
+    return logDate >= start && logDate <= end;
+  });
 
   console.log('filteredLogs', filteredLogs);
-  return logs;
+  return filteredLogs;
 }
 
 export async function searchByText(text: string) {
   const logs =  await getWorklogs();
-  return logs
-    .map((log) => {
-     
-        return (
-          log["Author Name"] === text ||
-          log["Issue Name"] === text
-        );
-      
-    })
-    .filter((logArray) => logArray.length > 0); // Remove empty sub-arrays
+  return logs.filter((log) => {
+    return (
+      log["Author Name"].toLowerCase().includes(text.toLowerCase()) ||
+      log["Issue Name"].toLowerCase().includes(text.toLowerCase()) ||
+      log["Department"].toLowerCase().includes(text.toLowerCase()) ||
+      log["Account Name"].toLowerCase().includes(text.toLowerCase())
+    );
+  });
+     // Remove empty sub-arrays
 }
 
 export async function getWorklogByProject(project: string): Promise<Worklogs[][]> {

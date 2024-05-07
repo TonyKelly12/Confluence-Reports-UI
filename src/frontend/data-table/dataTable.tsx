@@ -121,6 +121,7 @@ export const TableSorted = () => {
     }
     const searchByText = async (data: Worklogs[], text: string) => {
       let logs = data;
+      if(text === '') return logs;
       if (!logs) logs = [];
 
       return logs
@@ -132,7 +133,8 @@ export const TableSorted = () => {
               log["Issue Name"]
                 .toLowerCase()
                 .includes(text.toLowerCase()) ||
-              log["Account Name"].toLowerCase().includes(text.toLowerCase())
+              log["Account Name"].toLowerCase().includes(text.toLowerCase()) ||
+              log["Department"].toLowerCase().includes(text.toLowerCase())
             );
         })
         .filter((logArray) => logArray.length > 0); // Remove empty sub-arrays
