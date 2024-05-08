@@ -39,6 +39,7 @@ import { FormattedWorklog, Worklogs } from '../../backend/interfaces';
 // return dataJson;
 ///////
 export const TableSorted = () => {
+  const baseURL = 'https://datarecognitioncorp.atlassian.net'
   // Table State //
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const defaultFromDate = subMonths(new Date(), 2).toISOString();
@@ -63,6 +64,7 @@ export const TableSorted = () => {
 
   const initData = async () => {
     const data = await mockAPI.getWorklogs();
+    console.log("data",data);
     await fetchColumnNames();
     // const flattenedData = createFlatMap(data);
     await setFilteredData(data);
@@ -72,7 +74,7 @@ export const TableSorted = () => {
   useEffect(() => {
     if (!filteredData) {
       // Get initial data
-      initData();
+       initData();
     } else {
       // Reset data
 
@@ -358,10 +360,10 @@ export const TableSorted = () => {
                       );
                       break;
                     case 'User Link':
-                      content = <Link href={value}>{value}</Link>;
+                      content = <Link href={`${baseURL}/wiki/people/${row['Author ID']}`}>{value}</Link>;
                       break;
                     case 'Issue Link':
-                      content = <Link href={value}>{value}</Link>;
+                      content = <Link href={`${baseURL}/browse/VTE-${row['Issue ID']}`}>{value}</Link>;
                       break;
                     default:
                       content = value.toString();

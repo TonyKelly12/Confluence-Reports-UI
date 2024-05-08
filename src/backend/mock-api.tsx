@@ -74,14 +74,14 @@ export async  function getDateRangeLogs(startDate: string, endDate: string) {
   const end = new Date(endDate);
   end.setHours(23, 59, 59, 999);
 
-  const filteredLogs = logs.filter((log) => {
-    const logDate = new Date(log["Logged Date"]);
-    logDate.setHours(0, 0, 0, 0);
-    return logDate >= start && logDate <= end;
-  });
+  // const filteredLogs = logs.filter((log) => {
+  //   const logDate = new Date(log["Logged Date"]);
+  //   logDate.setHours(0, 0, 0, 0);
+  //   return logDate >= start && logDate <= end;
+  // });
 
-  console.log('filteredLogs', filteredLogs);
-  return filteredLogs;
+  console.log('filteredLogs', logs);
+  return logs;
 }
 
 export async function searchByText(text: string) {
