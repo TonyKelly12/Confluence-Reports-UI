@@ -63,7 +63,9 @@ export function getColumnNames(): string[] {
 
 export async function getWorklogs() {
   const resp = await axios.get('https://tempo-jira-api-production.up.railway.app/worklogs/data-table')
-  return resp.data;
+  const data = await resp.data;
+  console.log('data', data);
+  return data;
 }
 
 // Fix below
