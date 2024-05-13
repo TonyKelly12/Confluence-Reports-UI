@@ -1,14 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import ForgeUI from "@forge/ui";
 import {
   DynamicTable,
   Label,
   DatePicker,
-  Image,
   Stack,
   Inline,
   TextArea,
-  Textfield,
   Button,
   Box,
   xcss,
@@ -24,27 +21,19 @@ import {
   User,
 } from "@forge/react";
 import React, { Fragment, useState, useEffect } from "react";
-import { subMonths, addMonths } from "date-fns";
+import { subMonths, addMonths, set } from "date-fns";
 import * as mockAPI from "../../backend/mock-api";
 import convertSecondsToHours from "../../backend/util";
 import { FormattedWorklog, Worklogs } from "../../backend/interfaces";
-
-// const data = fetch('localhost:3000/api/reports', {
-//   method: 'GET',
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-// });
-// const dataJson = (await data.json()) as WorklogDictionary[];
-// return dataJson;
-///////
+import { debounce } from "lodash";
+import { useCallback } from "react";
 export const TableSorted = () => {
   const baseURL = "https://datarecognitioncorp.atlassian.net";
   // Table State //
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const defaultFromDate = subMonths(new Date(), 2).toISOString();
   const defaultToDate = addMonths(new Date(), 2).toISOString();
-
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedFromDate, setFromDate] = useState(defaultFromDate);
   const [selectedToDate, setToDate] = useState(defaultToDate);
   const [searchText, setSearchText] = useState("");
@@ -55,6 +44,8 @@ export const TableSorted = () => {
   const [isOpen, setIsOpen] = useState(false);
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
+  let textboxData = ''
+  const endDate = new Date().toISOString().split('T')[0];
   // Init Methods //
   const fetchColumnNames = async () => {
     const response = await mockAPI.getColumnNames(); // Fetch column names
@@ -63,14 +54,14 @@ export const TableSorted = () => {
   };
 
   const initData = () => {
-    fetchColumnNames();
     const eventSource = new EventSource(
-      "https://tempo-jira-api-production.up.railway.app/worklogs/data-table"
+      `https://tempo-jira-api-production.up.railway.app/worklogs/data-table?startDate=2024-05-01&endDate=${endDate}`
     );
 
     eventSource.onmessage = (event) => {
       const newWorklogs = JSON.parse(event.data);
       setFilteredData((prevWorklogs) => [...prevWorklogs, ...newWorklogs]);
+      setIsLoading(false);
     };
 
     eventSource.onerror = (error) => {
@@ -95,8 +86,9 @@ export const TableSorted = () => {
     const eventSource = new EventSource(url);
 
     eventSource.onmessage = (event) => {
-      const newWorklogs = JSON.parse(event.data);
+      const newWorklogs = JSON.parse(event.data.tableData);
       setFilteredData((prevWorklogs) => [...prevWorklogs, ...newWorklogs]);
+      setIsLoading(false);
     };
 
     eventSource.onerror = (error) => {
@@ -118,24 +110,28 @@ export const TableSorted = () => {
   }, [selectedFromDate, selectedToDate]);
 
   // Table Methods //
-  const searchByText = (text) => {
-    if (!text) return;
-    setFilteredData((currentData) =>
-      currentData.filter(
+  const searchByText = ((text) => {
+     console.log('searchText', searchText)
+    if (searchText === ""){
+      setSearchText('')
+      return
+    };
+    setFilteredData(() =>
+      filteredData.filter(
         (log) =>
-          log["Author Name"].toLowerCase().includes(text.toLowerCase()) ||
-          log["Issue Name"].toLowerCase().includes(text.toLowerCase()) ||
-          log["Account Name"].toLowerCase().includes(text.toLowerCase()) ||
-          log["Department"].toLowerCase().includes(text.toLowerCase())
+          log["Author Name"].toLowerCase().includes(searchText.toLowerCase()) ||
+          log["Issue Name"].toLowerCase().includes(searchText.toLowerCase()) ||
+          log["Account Name"].toLowerCase().includes(searchText.toLowerCase()) ||
+          log["Department"].toLowerCase().includes(searchText.toLowerCase())
       )
     );
-  };
-  // const getWorklogByDateRange = async (startDate: string, endDate: string) => {
-  //   return await mockAPI.getDateRangeLogs(startDate, endDate);
-  // };
+  });
 
-  // Date Methods //
-
+  // useEffect(() => {
+  //   console.log('searchText', searchText)
+  //   searchByText()  // Date Methods //
+  // }, [searchText]
+//);
   const formatDate = (date: Date) => {
     const day = date.getDate();
     const month = date.getMonth() + 1; // getMonth() returns a zero-based index
@@ -144,7 +140,7 @@ export const TableSorted = () => {
     // Pad single-digit day and month with a zero
     const dayString = (day < 10 ? "0" + day : day).toString();
     const monthString = month < 10 ? "0" + month : month;
-
+    
     return monthString + "/" + dayString + "/" + year;
   };
 
@@ -156,32 +152,30 @@ export const TableSorted = () => {
       selectedToDate
     );
 
-    // const dataLayer = updatedData.map((row) => {
-    //   return row;
-    // });
-
     setFilteredData(updatedData);
   };
 
   const onToDateChange = async (value: string) => {
+    setIsLoading(true);
     const updatedToDate = formatDate(new Date(value));
     await setToDate(updatedToDate);
     const updatedData = await getWorklogByDateRange(
       selectedFromDate,
       selectedToDate
     );
-
-    // const dataLayer = updatedData.map((row) => {
-    //   return row;
-    // });
     await setFilteredData(updatedData as any);
-    // await setRows(createRows(updatedData));
+    setIsLoading(false);
   };
+  const debouncedSearch = useCallback(
+    debounce((text) => {
+    setSearchText(text)
+  
+  }, 1000), []);
 
-  const onNameInputChange = async (event) => {
-    const text = event.target.value;
-    setSearchText(text);
-  };
+  const onNameInputChange = useCallback(debounce((event) => {
+    textboxData = event.target.value
+    debouncedSearch(textboxData);
+  }, 300), []);  
 
   // Export Methods //
   const exportCSVData = async () => {
@@ -299,7 +293,7 @@ export const TableSorted = () => {
             <Label labelFor="default-name-example">
               Search By Name / Account / Issue
             </Label>
-            <TextArea value={searchText} onChange={onNameInputChange} />
+            <TextArea onChange={(e) => onNameInputChange(e.target.value)} />
           </Stack>
         </Inline>
 
@@ -389,7 +383,7 @@ export const TableSorted = () => {
               };
             })}
             defaultSortOrder="ASC"
-            isLoading={false}
+            isLoading={isLoading}
             highlightedRowIndex={Array.from({ length: 15 }, (_, i) => i * 2)}
             sortKey={isChecked ? "Author Name" : "Account Name"}
           />
