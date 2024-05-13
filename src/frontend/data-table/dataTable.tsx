@@ -44,8 +44,8 @@ export const TableSorted = () => {
   const [isOpen, setIsOpen] = useState(false);
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
-  let textboxData = ''
-  const endDate = new Date().toISOString().split('T')[0];
+  let textboxData = "";
+  const endDate = new Date().toISOString().split("T")[0];
   // Init Methods //
   const fetchColumnNames = async () => {
     const response = await mockAPI.getColumnNames(); // Fetch column names
@@ -60,8 +60,17 @@ export const TableSorted = () => {
 
     eventSource.onmessage = (event) => {
       const newWorklogs = JSON.parse(event.data);
-      setFilteredData((prevWorklogs) => [...prevWorklogs, ...newWorklogs]);
-      setIsLoading(false);
+      if (
+        Array.isArray(newWorklogs) &&
+        newWorklogs !== null &&
+        newWorklogs.length > 0 &&
+        newWorklogs !== undefined
+      ) {
+        setFilteredData((prevWorklogs) =>
+          [...prevWorklogs, ...newWorklogs] 
+        );
+        setIsLoading(false);
+      }
     };
 
     eventSource.onerror = (error) => {
@@ -82,12 +91,27 @@ export const TableSorted = () => {
   }, []);
 
   const getWorklogByDateRange = (startDate, endDate) => {
-    const url = `https://tempo-jira-api-production.up.railway.app/worklogs/data-table?from=${startDate}&to=${endDate}`;
+    console.log("startDate", startDate);
+    console.log("endDate", endDate);
+    const formattedStartDate = startDate.split("T")[0];
+    const formattedEndDate = endDate.split("T")[0];
+    const url = `https://tempo-jira-api-production.up.railway.app/worklogs/data-table?startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
     const eventSource = new EventSource(url);
 
     eventSource.onmessage = (event) => {
-      const newWorklogs = JSON.parse(event.data.tableData);
-      setFilteredData((prevWorklogs) => [...prevWorklogs, ...newWorklogs]);
+      if (event.data && event.data.tableData) {
+        console.log("event", event.data);
+        const newWorklogs = JSON.parse(event.data.tableData) ?? [];
+        if (newWorklogs.length > 0) {
+          setFilteredData((prevWorklogs) => [...prevWorklogs, ...newWorklogs]);
+
+        }
+        
+      } else {
+       
+        console.warn("No Data received from server");
+      }
+
       setIsLoading(false);
     };
 
@@ -110,28 +134,36 @@ export const TableSorted = () => {
   }, [selectedFromDate, selectedToDate]);
 
   // Table Methods //
-  const searchByText = ((text) => {
-     console.log('searchText', searchText)
-    if (searchText === ""){
-      setSearchText('')
-      return
-    };
-    setFilteredData(() =>
-      filteredData.filter(
-        (log) =>
-          log["Author Name"].toLowerCase().includes(searchText.toLowerCase()) ||
-          log["Issue Name"].toLowerCase().includes(searchText.toLowerCase()) ||
-          log["Account Name"].toLowerCase().includes(searchText.toLowerCase()) ||
-          log["Department"].toLowerCase().includes(searchText.toLowerCase())
-      )
-    );
-  });
+  const searchByText = () => {
+    console.log("searchText", searchText);
+    if (searchText) {
+      if (searchText === "") {
+        initData();
+        setSearchText("");
+        return;
+      } else {
+        console.log("filtering", searchText);
+        const searchData = filteredData.filter((log) => {
+          console.log("log", log);
+          log["Author Name"]
+            ?.toLowerCase()
+            .includes(searchText.toLowerCase()) ||
+            log["Account Name"]
+              ?.toLowerCase()
+              .includes(searchText.toLowerCase()) ||
+            log["Department"]?.toLowerCase().includes(searchText.toLowerCase());
+        });
+        setFilteredData(searchData);
+      }
+      
+      return;
+    }
+  };
 
-  // useEffect(() => {
-  //   console.log('searchText', searchText)
-  //   searchByText()  // Date Methods //
-  // }, [searchText]
-//);
+  useEffect(() => {
+    console.log("searchText", searchText);
+    searchByText(); // Date Methods //
+  }, [searchText]);
   const formatDate = (date: Date) => {
     const day = date.getDate();
     const month = date.getMonth() + 1; // getMonth() returns a zero-based index
@@ -140,42 +172,43 @@ export const TableSorted = () => {
     // Pad single-digit day and month with a zero
     const dayString = (day < 10 ? "0" + day : day).toString();
     const monthString = month < 10 ? "0" + month : month;
-    
+
     return monthString + "/" + dayString + "/" + year;
   };
 
   const onFromDateChange = async (value: string) => {
+    setIsLoading(true);
     const updatedFromDate = formatDate(new Date(value));
-    await setFromDate(updatedFromDate);
+    setFromDate(updatedFromDate);
     const updatedData: any = await getWorklogByDateRange(
-      selectedFromDate,
+      updatedFromDate,
       selectedToDate
     );
-
+    setIsLoading(false);
     setFilteredData(updatedData);
   };
 
   const onToDateChange = async (value: string) => {
     setIsLoading(true);
     const updatedToDate = formatDate(new Date(value));
-    await setToDate(updatedToDate);
+    setToDate(updatedToDate);
     const updatedData = await getWorklogByDateRange(
       selectedFromDate,
-      selectedToDate
+      updatedToDate
     );
-    await setFilteredData(updatedData as any);
-    setIsLoading(false);
-  };
-  const debouncedSearch = useCallback(
-    debounce((text) => {
-    setSearchText(text)
-  
-  }, 1000), []);
 
-  const onNameInputChange = useCallback(debounce((event) => {
-    textboxData = event.target.value
+    setIsLoading(false);
+    setFilteredData(updatedData as any);
+  };
+  const debouncedSearch = debounce((text) => {
+    setSearchText(text);
+  }, 300);
+
+  const onNameInputChange = (event) => {
+    console.log("event", event);
+    textboxData = event;
     debouncedSearch(textboxData);
-  }, 300), []);  
+  };
 
   // Export Methods //
   const exportCSVData = async () => {
@@ -339,49 +372,55 @@ export const TableSorted = () => {
                 .filter((column) => visibleColumns[column])
                 .map((column) => ({ key: column, content: column })),
             }}
-            rows={filteredData.map((row, index) => {
-              const visibleEntries = Object.entries(row).filter((key) => {
-                return visibleColumns[key[0]];
-              });
+            rows={
+              Array.isArray(filteredData) && filteredData.length > 0
+                ? filteredData.map((row, index) => {
+                    const visibleEntries = Object.entries(row).filter((key) => {
+                      return visibleColumns[key[0]];
+                    });
 
-              return {
-                key: `row-${index}`,
-                cells: visibleEntries.map(([key, value]) => {
-                  let content;
-                  switch (key) {
-                    case "Avatar":
-                      content = (
-                        <Box xcss={cardStyle}>
-                          <User accountId={row["Author ID"]} />
-                        </Box>
-                      );
-                      break;
-                    case "User Link":
-                      content = (
-                        <Link
-                          href={`${baseURL}/wiki/people/${row["Author ID"]}`}
-                        >
-                          {value.toString()}
-                        </Link>
-                      );
-                      break;
-                    case "Issue Link":
-                      content = (
-                        <Link href={`${baseURL}/browse/VTE-${row["Issue ID"]}`}>
-                          {value.toString()}
-                        </Link>
-                      );
-                      break;
-                    default:
-                      content = value.toString();
-                  }
-                  return {
-                    key: `cell-${key}`,
-                    content: content,
-                  };
-                }),
-              };
-            })}
+                    return {
+                      key: `row-${index}`,
+                      cells: visibleEntries.map(([key, value]) => {
+                        let content;
+                        switch (key) {
+                          case "Avatar":
+                            content = (
+                              <Box xcss={cardStyle}>
+                                <User accountId={row["Author ID"]} />
+                              </Box>
+                            );
+                            break;
+                          case "User Link":
+                            content = (
+                              <Link
+                                href={`${baseURL}/wiki/people/${row["Author ID"]}`}
+                              >
+                                {value.toString()}
+                              </Link>
+                            );
+                            break;
+                          case "Issue Link":
+                            content = (
+                              <Link
+                                href={`${baseURL}/browse/VTE-${row["Issue ID"]}`}
+                              >
+                                {value.toString()}
+                              </Link>
+                            );
+                            break;
+                          default:
+                            content = value.toString();
+                        }
+                        return {
+                          key: `cell-${key}`,
+                          content: content,
+                        };
+                      }),
+                    };
+                  })
+                : []
+            }
             defaultSortOrder="ASC"
             isLoading={isLoading}
             highlightedRowIndex={Array.from({ length: 15 }, (_, i) => i * 2)}
