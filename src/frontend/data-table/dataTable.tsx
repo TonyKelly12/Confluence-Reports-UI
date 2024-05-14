@@ -66,9 +66,7 @@ export const TableSorted = () => {
         newWorklogs.length > 0 &&
         newWorklogs !== undefined
       ) {
-        setFilteredData((prevWorklogs) =>
-          [...prevWorklogs, ...newWorklogs] 
-        );
+        setFilteredData((prevWorklogs) => [...prevWorklogs, ...newWorklogs]);
         setIsLoading(false);
       }
     };
@@ -91,28 +89,34 @@ export const TableSorted = () => {
   }, []);
 
   const getWorklogByDateRange = (startDate, endDate) => {
+   
     console.log("startDate", startDate);
     console.log("endDate", endDate);
-    const formattedStartDate = startDate.split("T")[0];
-    const formattedEndDate = endDate.split("T")[0];
-    const url = `https://tempo-jira-api-production.up.railway.app/worklogs/data-table?startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
+
+    const url = `https://tempo-jira-api-production.up.railway.app/worklogs/data-table?startDate=${startDate}&endDate=${endDate}`;
+    console.log("url", url);
     const eventSource = new EventSource(url);
-
+    console.log("eventSource", eventSource);
     eventSource.onmessage = (event) => {
-      if (event.data && event.data.tableData) {
-        console.log("event", event.data);
-        const newWorklogs = JSON.parse(event.data.tableData) ?? [];
-        if (newWorklogs.length > 0) {
-          setFilteredData((prevWorklogs) => [...prevWorklogs, ...newWorklogs]);
-
-        }
-        
-      } else {
-       
-        console.warn("No Data received from server");
+      console.log("event.data", event.data);
+      const newWorklogs = JSON.parse(event.data);
+      console.log("newWorklogs", newWorklogs);
+      if (
+        Array.isArray(newWorklogs) &&
+        newWorklogs !== null &&
+        newWorklogs.length > 0 &&
+        newWorklogs !== undefined
+      ) {
+        setFilteredData((prevWorklogs) => {
+          if (Array.isArray(prevWorklogs)) {
+            return [...prevWorklogs, ...newWorklogs];
+          } else {
+            // Handle the case where prevWorklogs is not an array
+            return [...newWorklogs];
+          }
+        });
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
     eventSource.onerror = (error) => {
@@ -145,25 +149,27 @@ export const TableSorted = () => {
         console.log("filtering", searchText);
         const searchData = filteredData.filter((log) => {
           console.log("log", log);
-          log["Author Name"]
-            ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
+          return (
+            log["Author Name"]
+              ?.toLowerCase()
+              .includes(searchText.toLowerCase()) ||
             log["Account Name"]
               ?.toLowerCase()
               .includes(searchText.toLowerCase()) ||
-            log["Department"]?.toLowerCase().includes(searchText.toLowerCase());
+            log["Department"]?.toLowerCase().includes(searchText.toLowerCase())
+          );
         });
         setFilteredData(searchData);
       }
-      
+
       return;
     }
   };
-
   useEffect(() => {
     console.log("searchText", searchText);
     searchByText(); // Date Methods //
   }, [searchText]);
+
   const formatDate = (date: Date) => {
     const day = date.getDate();
     const month = date.getMonth() + 1; // getMonth() returns a zero-based index
@@ -173,32 +179,28 @@ export const TableSorted = () => {
     const dayString = (day < 10 ? "0" + day : day).toString();
     const monthString = month < 10 ? "0" + month : month;
 
-    return monthString + "/" + dayString + "/" + year;
+    return year + "-" + monthString + "-" + dayString  ;
   };
 
   const onFromDateChange = async (value: string) => {
     setIsLoading(true);
     const updatedFromDate = formatDate(new Date(value));
-    setFromDate(updatedFromDate);
-    const updatedData: any = await getWorklogByDateRange(
-      updatedFromDate,
-      selectedToDate
-    );
-    setIsLoading(false);
-    setFilteredData(updatedData);
+    const formate = formatDate(new Date(updatedFromDate));
+    const formatSelected = formatDate(new Date(selectedToDate));
+    // setFromDate(formate);
+    // const updatedData: any = await getWorklogByDateRange(
+    //   formate,
+    //   formatSelected
+    // );
+    setFromDate(formate);
   };
 
   const onToDateChange = async (value: string) => {
     setIsLoading(true);
     const updatedToDate = formatDate(new Date(value));
-    setToDate(updatedToDate);
-    const updatedData = await getWorklogByDateRange(
-      selectedFromDate,
-      updatedToDate
-    );
-
-    setIsLoading(false);
-    setFilteredData(updatedData as any);
+    const formate = formatDate(new Date(updatedToDate));
+    const formatSelected = formatDate(new Date(selectedFromDate));
+    setToDate(formate);
   };
   const debouncedSearch = debounce((text) => {
     setSearchText(text);
