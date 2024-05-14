@@ -27,12 +27,13 @@ import convertSecondsToHours from "../../backend/util";
 import { FormattedWorklog, Worklogs } from "../../backend/interfaces";
 import { debounce } from "lodash";
 import { useCallback } from "react";
+import { da } from "@faker-js/faker";
 export const TableSorted = () => {
   const baseURL = "https://datarecognitioncorp.atlassian.net";
   // Table State //
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-  const defaultFromDate = subMonths(new Date(), 2).toISOString();
-  const defaultToDate = addMonths(new Date(), 2).toISOString();
+  const defaultFromDate = subMonths(new Date(), 2).toISOString().split("T")[0];;
+  const defaultToDate = addMonths(new Date(), 2).toISOString().split("T")[0];
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFromDate, setFromDate] = useState(defaultFromDate);
   const [selectedToDate, setToDate] = useState(defaultToDate);
@@ -171,12 +172,12 @@ export const TableSorted = () => {
   }, [searchText]);
 
   const formatDate = (date: Date) => {
-    const day = date.getDate();
-    const month = date.getMonth() + 1; // getMonth() returns a zero-based index
+    const day = date.getDate()
+    const month = date.getMonth() + 1 // getMonth() returns a zero-based index
     const year = date.getFullYear().toString();
 
     // Pad single-digit day and month with a zero
-    const dayString = (day < 10 ? "0" + day : day).toString();
+    const dayString = (day < 10 ? "0" + day : day).toString();;
     const monthString = month < 10 ? "0" + month : month;
 
     return year + "-" + monthString + "-" + dayString  ;
@@ -186,12 +187,7 @@ export const TableSorted = () => {
     setIsLoading(true);
     const updatedFromDate = formatDate(new Date(value));
     const formate = formatDate(new Date(updatedFromDate));
-    const formatSelected = formatDate(new Date(selectedToDate));
-    // setFromDate(formate);
-    // const updatedData: any = await getWorklogByDateRange(
-    //   formate,
-    //   formatSelected
-    // );
+  
     setFromDate(formate);
   };
 
@@ -199,7 +195,7 @@ export const TableSorted = () => {
     setIsLoading(true);
     const updatedToDate = formatDate(new Date(value));
     const formate = formatDate(new Date(updatedToDate));
-    const formatSelected = formatDate(new Date(selectedFromDate));
+    
     setToDate(formate);
   };
   const debouncedSearch = debounce((text) => {
@@ -207,7 +203,6 @@ export const TableSorted = () => {
   }, 300);
 
   const onNameInputChange = (event) => {
-    console.log("event", event);
     textboxData = event;
     debouncedSearch(textboxData);
   };
@@ -231,7 +226,7 @@ export const TableSorted = () => {
       "Billable",
     ];
     // CSV
-    const csv = data.map((row) => {
+    const csv = filteredData.map((row) => {
       return `${row["Author ID"]},${row["Author Name"]},${row["Created At"]},${
         row["Logged Date"]
       },${row["Issue Name"]},${row["Department"]},${
