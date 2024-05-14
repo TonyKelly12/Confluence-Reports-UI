@@ -24,10 +24,7 @@ import React, { Fragment, useState, useEffect } from "react";
 import { subMonths, addMonths, set } from "date-fns";
 import * as mockAPI from "../../backend/mock-api";
 import convertSecondsToHours from "../../backend/util";
-import { FormattedWorklog, Worklogs } from "../../backend/interfaces";
 import { debounce } from "lodash";
-import { useCallback } from "react";
-import { da } from "@faker-js/faker";
 export const TableSorted = () => {
   const baseURL = "https://datarecognitioncorp.atlassian.net";
   // Table State //
