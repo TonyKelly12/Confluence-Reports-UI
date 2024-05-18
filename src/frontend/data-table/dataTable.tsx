@@ -29,8 +29,8 @@ export const TableSorted = () => {
   const baseURL = "https://datarecognitioncorp.atlassian.net";
   // Table State //
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-  const defaultFromDate = subMonths(new Date(), 2).toISOString().split("T")[0];;
-  const defaultToDate = addMonths(new Date(), 2).toISOString().split("T")[0];
+  const defaultFromDate = subMonths(new Date(), 2).toISOString().split("T")[0];
+  const defaultToDate = new Date().toISOString().split("T")[0];
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFromDate, setFromDate] = useState(defaultFromDate);
   const [selectedToDate, setToDate] = useState(defaultToDate);
@@ -39,11 +39,14 @@ export const TableSorted = () => {
   const [columnNames, setColumnNames] = useState<string[]>([]);
   const [visibleColumns, setVisibleColumns] = useState({});
   const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [searchData, setSearchData] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
   let textboxData = "";
+  let eventSource ;
   const endDate = new Date().toISOString().split("T")[0];
+  const tableDataToUse = searchData && searchData.length > 0 ? searchData : filteredData;
   // Init Methods //
   const fetchColumnNames = async () => {
     const response = await mockAPI.getColumnNames(); // Fetch column names
@@ -52,7 +55,12 @@ export const TableSorted = () => {
   };
 
   const initData = () => {
-    const eventSource = new EventSource(
+    if (eventSource) {
+      eventSource.close();
+      setFilteredData([]);
+    }
+  
+    eventSource = new EventSource(
       `https://tempo-jira-api-production.up.railway.app/worklogs/data-table?startDate=2024-05-01&endDate=${endDate}`
     );
 
@@ -87,18 +95,20 @@ export const TableSorted = () => {
   }, []);
 
   const getWorklogByDateRange = (startDate, endDate) => {
-   
-    console.log("startDate", startDate);
+    if (eventSource) {
+      eventSource.close();
+      setFilteredData([]);
+    }
+    console.log("startDate", startDate); 
     console.log("endDate", endDate);
-
     const url = `https://tempo-jira-api-production.up.railway.app/worklogs/data-table?startDate=${startDate}&endDate=${endDate}`;
-    console.log("url", url);
-    const eventSource = new EventSource(url);
-    console.log("eventSource", eventSource);
+   
+    eventSource = new EventSource(url);
+    
     eventSource.onmessage = (event) => {
-      console.log("event.data", event.data);
+     
       const newWorklogs = JSON.parse(event.data);
-      console.log("newWorklogs", newWorklogs);
+    
       if (
         Array.isArray(newWorklogs) &&
         newWorklogs !== null &&
@@ -132,6 +142,7 @@ export const TableSorted = () => {
       selectedFromDate,
       selectedToDate
     );
+    setFilteredData([]);
     return closeEventSource;
   }, [selectedFromDate, selectedToDate]);
 
@@ -140,8 +151,9 @@ export const TableSorted = () => {
     console.log("searchText", searchText);
     if (searchText) {
       if (searchText === "") {
-        initData();
+        // getWorklogByDateRange(selectedFromDate, selectedToDate);
         setSearchText("");
+        setSearchData(null);
         return;
       } else {
         console.log("filtering", searchText);
@@ -157,34 +169,40 @@ export const TableSorted = () => {
             log["Department"]?.toLowerCase().includes(searchText.toLowerCase())
           );
         });
-        setFilteredData(searchData);
+        setSearchData(searchData);
       }
-
       return;
     }
+    else {
+      getWorklogByDateRange(selectedFromDate, selectedToDate);
+        setSearchText("");
+        setSearchData(null);
+        return;
+    }
   };
+
   useEffect(() => {
     console.log("searchText", searchText);
     searchByText(); // Date Methods //
   }, [searchText]);
 
   const formatDate = (date: Date) => {
-    const day = date.getDate()
-    const month = date.getMonth() + 1 // getMonth() returns a zero-based index
+    const day = date.getDate();
+    const month = date.getMonth() + 1; // getMonth() returns a zero-based index
     const year = date.getFullYear().toString();
 
     // Pad single-digit day and month with a zero
-    const dayString = (day < 10 ? "0" + day : day).toString();;
+    const dayString = (day < 10 ? "0" + day : day).toString();
     const monthString = month < 10 ? "0" + month : month;
 
-    return year + "-" + monthString + "-" + dayString  ;
+    return year + "-" + monthString + "-" + dayString;
   };
 
   const onFromDateChange = async (value: string) => {
     setIsLoading(true);
     const updatedFromDate = formatDate(new Date(value));
     const formate = formatDate(new Date(updatedFromDate));
-  
+
     setFromDate(formate);
   };
 
@@ -192,7 +210,7 @@ export const TableSorted = () => {
     setIsLoading(true);
     const updatedToDate = formatDate(new Date(value));
     const formate = formatDate(new Date(updatedToDate));
-    
+
     setToDate(formate);
   };
   const debouncedSearch = debounce((text) => {
@@ -206,7 +224,7 @@ export const TableSorted = () => {
 
   // Export Methods //
   const exportCSVData = async () => {
-      const headers = [
+    const headers = [
       "Author ID",
       "Employee Number",
       "Author Name",
@@ -218,19 +236,21 @@ export const TableSorted = () => {
       "Department Ledger Code",
       "Account Name",
       "Account ID",
-      "Tax Credit",
+      "Issue Category",
       "Time Spent",
       "Billable",
     ];
     // CSV
     const csv = filteredData.map((row) => {
-      return `${row["Author ID"]},${row["Employee Number"]},${row["Author Name"]},${row["Created At"]},${
-        row["Logged Date"]
-      },${row["Issue Name"]},${row["Issue ID"]},${row["Department"]},${
-        row["Department Ledger Code"]
-      },${row["Account Name"]},${row["Account ID"]},${row["Tax Credit"]},${convertSecondsToHours(row["Time Spent"])},${convertSecondsToHours(
-        row["Billable"]
-      )}`;
+      return `${row["Author ID"]},${row["Employee Number"]},${
+        row["Author Name"]
+      },${row["Created At"]},${row["Logged Date"]},${row["Issue Name"]},${
+        row["Issue ID"]
+      },${row["Department"]},${row["Department Ledger Code"]},${
+        row["Account Name"]
+      },${row["Account ID"]},${row["Issue Category"]},${
+        row["Time Spent"]
+      },${row["Billable"]}`;
     });
     csv.unshift(headers.join(",")); // Add headers to the start of the array
     const csvString = csv.join("\n");
@@ -359,7 +379,7 @@ export const TableSorted = () => {
           backgroundColor="color.background.neutral.subtle"
         >
           <DynamicTable
-            defaultSortKey="Author Name"
+            defaultSortKey="Logged Date"
             rowsPerPage={15}
             head={{
               cells: Object.keys(visibleColumns)
@@ -367,8 +387,9 @@ export const TableSorted = () => {
                 .map((column) => ({ key: column, content: column })),
             }}
             rows={
+              
               Array.isArray(filteredData) && filteredData.length > 0
-                ? filteredData.map((row, index) => {
+                ? tableDataToUse.map((row, index) => {
                     const visibleEntries = Object.entries(row).filter((key) => {
                       return visibleColumns[key[0]];
                     });
@@ -394,15 +415,23 @@ export const TableSorted = () => {
                               </Link>
                             );
                             break;
-                          case "Issue Link":
-                            content = (
-                              <Link
-                                href={`${baseURL}/browse/VTE-${row["Issue ID"]}`}
-                              >
-                                {value.toString()}
-                              </Link>
-                            );
+                          case "Logged Time":
+                            const timeParts = value.toString().split(":");
+                            const dateObj = new Date();
+                            dateObj.setHours(parseInt(timeParts[0]));
+                            dateObj.setMinutes(parseInt(timeParts[1]));
+                            dateObj.setSeconds(parseInt(timeParts[2]));
+                            content = dateObj.toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            });
                             break;
+                            case "Created At":
+                              content = value.toString().split("T")[0];
+                              break;
+                            case "Updated At":
+                              content = value.toString().split("T")[0];
+                              break;
                           default:
                             content = value.toString();
                         }
@@ -418,14 +447,14 @@ export const TableSorted = () => {
             defaultSortOrder="ASC"
             isLoading={isLoading}
             highlightedRowIndex={Array.from({ length: 15 }, (_, i) => i * 2)}
-            sortKey={isChecked ? "Author Name" : "Account Name"}
+            sortKey={isChecked ? "Author Name" : "Author Name"}
           />
         </Box>
         <ModalTransition>
           {isOpen && (
             <Modal onClose={closeModal}>
               <ModalHeader>
-                <ModalTitle>Duplicate this page</ModalTitle>
+                <ModalTitle>Column Visibility</ModalTitle>
               </ModalHeader>
               <ModalBody>
                 <Box

@@ -52,12 +52,11 @@ export function getColumnNames(): string[] {
     'Account Name',
     'Issue Name',
     'Issue ID',
-    'Issue Link',
     'Logged Date',
     'Logged Time',
     'Created At',
     'Updated At',
-    "Tax Credit",
+    "Issue Category",
     'Time Spent',
     'Billable',
   ];
