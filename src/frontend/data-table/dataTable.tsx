@@ -206,29 +206,29 @@ export const TableSorted = () => {
 
   // Export Methods //
   const exportCSVData = async () => {
-    const data: any = await getWorklogByDateRange(
-      selectedFromDate,
-      selectedToDate
-    );
-
-    const headers = [
+      const headers = [
       "Author ID",
+      "Employee Number",
       "Author Name",
       "Created At",
       "Logged Date",
       "Issue Name",
+      "Issue ID",
       "Department",
       "Department Ledger Code",
+      "Account Name",
+      "Account ID",
+      "Tax Credit",
       "Time Spent",
       "Billable",
     ];
     // CSV
     const csv = filteredData.map((row) => {
-      return `${row["Author ID"]},${row["Author Name"]},${row["Created At"]},${
+      return `${row["Author ID"]},${row["Employee Number"]},${row["Author Name"]},${row["Created At"]},${
         row["Logged Date"]
-      },${row["Issue Name"]},${row["Department"]},${
+      },${row["Issue Name"]},${row["Issue ID"]},${row["Department"]},${
         row["Department Ledger Code"]
-      },${convertSecondsToHours(row["Time Spent"])},${convertSecondsToHours(
+      },${row["Account Name"]},${row["Account ID"]},${row["Tax Credit"]},${convertSecondsToHours(row["Time Spent"])},${convertSecondsToHours(
         row["Billable"]
       )}`;
     });

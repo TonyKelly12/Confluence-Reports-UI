@@ -42,6 +42,7 @@ export function getColumnNames(): string[] {
   return [
     'Avatar',
     'Author ID',
+    'Employee Number',
     'Author Name',
     'User Link',
     'Department',
@@ -56,6 +57,7 @@ export function getColumnNames(): string[] {
     'Logged Time',
     'Created At',
     'Updated At',
+    "Tax Credit",
     'Time Spent',
     'Billable',
   ];
