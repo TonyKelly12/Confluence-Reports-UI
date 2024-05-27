@@ -9,11 +9,11 @@ import {
   Worklog,
   WorklogDictionary,
   Worklogs,
-} from './interfaces';
-import { createUserWorklogObjects, mapWorklogData } from './reports';
-import { UserDB, WorklogDB } from './mock-db';
-import { faker } from '@faker-js/faker';
-import axios from 'axios';
+} from "./interfaces";
+import { createUserWorklogObjects, mapWorklogData } from "./reports";
+import { UserDB, WorklogDB } from "./mock-db";
+import { faker } from "@faker-js/faker";
+import axios from "axios";
 
 export function getUsers(): User[] {
   return UserDB;
@@ -40,37 +40,40 @@ avatar: string;
 */
 export function getColumnNames(): string[] {
   return [
-    'Avatar',
-    'Author ID',
-    'Employee Number',
-    'Author Name',
-    'User Link',
-    'Department',
-    'Department Ledger Code',
-    'Log ID',
-    'Account ID',
-    'Account Name',
-    'Issue Name',
-    'Issue ID',
-    'Logged Date',
-    'Logged Time',
-    'Created At',
-    'Updated At',
+    "Avatar",
+    "Author ID",
+    "Employee Number",
+    "Author Name",
+    "User Link",
+    "Department",
+    "Department Ledger Code",
+    "Log ID",
+    "Account ID",
+    "Account Key",
+    "Account Name",
+    "Issue Name",
+    "Issue ID",
+    "Logged Date",
+    "Logged Time",
+    "Created At",
+    "Updated At",
     "Issue Category",
-    'Time Spent',
-    'Billable',
+    "Time Spent",
+    "Billable",
   ];
 }
 
 export async function getWorklogs() {
-  const resp = await axios.get('https://tempo-jira-api-production.up.railway.app/worklogs/data-table')
+  const resp = await axios.get(
+    "https://tempo-jira-api-production.up.railway.app/worklogs/data-table"
+  );
   const data = await resp.data;
-  console.log('data', data);
+  console.log("data", data);
   return data;
 }
 
 // Fix below
-export async  function getDateRangeLogs(startDate: string, endDate: string) {
+export async function getDateRangeLogs(startDate: string, endDate: string) {
   const logs = await getWorklogs();
   const start = new Date(startDate);
   start.setHours(0, 0, 0, 0);
@@ -83,12 +86,12 @@ export async  function getDateRangeLogs(startDate: string, endDate: string) {
   //   return logDate >= start && logDate <= end;
   // });
 
-  console.log('filteredLogs', logs);
+  console.log("filteredLogs", logs);
   return logs;
 }
 
 export async function searchByText(text: string) {
-  const logs =  await getWorklogs();
+  const logs = await getWorklogs();
   return logs.filter((log) => {
     return (
       log["Author Name"].toLowerCase().includes(text.toLowerCase()) ||
@@ -97,10 +100,12 @@ export async function searchByText(text: string) {
       log["Account Name"].toLowerCase().includes(text.toLowerCase())
     );
   });
-     // Remove empty sub-arrays
+  // Remove empty sub-arrays
 }
 
-export async function getWorklogByProject(project: string): Promise<Worklogs[][]> {
+export async function getWorklogByProject(
+  project: string
+): Promise<Worklogs[][]> {
   const logs = await getWorklogs();
   return logs.filter((log) => {
     return log.filter((lg) => {
@@ -122,10 +127,10 @@ export function getUserWorklogDictionary(): WorklogDictionary[] {
 
 export function generateAvatarUrls(): AvatarUrls {
   return {
-    '48x48': faker.image.avatar(),
-    '24x24': faker.image.avatar(),
-    '16x16': faker.image.avatar(),
-    '32x32': faker.image.avatar(),
+    "48x48": faker.image.avatar(),
+    "24x24": faker.image.avatar(),
+    "16x16": faker.image.avatar(),
+    "32x32": faker.image.avatar(),
   };
 }
 
@@ -136,7 +141,7 @@ function generateMockUsers(count: number): User[] {
     const user: User = {
       self: faker.internet.url(),
       accountId: faker.string.uuid(),
-      accountType: faker.string.fromCharacters(['atlassian', 'app']),
+      accountType: faker.string.fromCharacters(["atlassian", "app"]),
       emailAddress: faker.internet.email(),
       avatarUrls: generateAvatarUrls(),
       displayName: faker.person.fullName(),
@@ -175,13 +180,13 @@ export function generateMockWorklog(number: number): Worklog[] {
       accountName: faker.lorem.word(),
       timeSpentSeconds: faker.number.int({ min: 600, max: 7200 }), // Random time between 10 minutes and 2 hours
       billableSeconds: faker.number.int({ min: 600, max: 7200 }),
-      issueStartDate: faker.date.recent().toISOString().split('T')[0], // Random recent date in YYYY-MM-DD format
+      issueStartDate: faker.date.recent().toISOString().split("T")[0], // Random recent date in YYYY-MM-DD format
       loggedTime: generateRandomTime(),
-      loggedDate: faker.date.recent().toISOString().split('T')[0],
+      loggedDate: faker.date.recent().toISOString().split("T")[0],
       createdAt: faker.date.past().toISOString(),
       updatedAt: faker.date.recent().toISOString(),
       author: {
-        avatar: user.avatarUrls['24x24'],
+        avatar: user.avatarUrls["24x24"],
         self: faker.internet.url(),
         userID: user.accountId,
         displayName: faker.person.fullName(),
@@ -197,9 +202,9 @@ function generateRandomTime(): string {
   const minutes = faker.number.int({ min: 0, max: 59 });
   const seconds = faker.number.int({ min: 0, max: 59 });
 
-  return `${hours.toString().padStart(2, '0')}:${minutes
+  return `${hours.toString().padStart(2, "0")}:${minutes
     .toString()
-    .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
 function generateMockFilteredData(): IFilteredData {
@@ -224,7 +229,7 @@ function generateMockFilteredWorklogData(count: number): FilteredWorklogData[] {
 
   for (let i = 0; i < count; i++) {
     const filteredWorklogData: FilteredWorklogData = {
-      logDate: faker.date.recent().toISOString().split('T')[0],
+      logDate: faker.date.recent().toISOString().split("T")[0],
       worklog: generateMockFilteredWorklog(),
     };
 

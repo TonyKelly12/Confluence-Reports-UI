@@ -1,4 +1,4 @@
-import { AvatarUrls, User, Worklog, WorklogDictionary, Worklogs } from './interfaces';
+import { AvatarUrls, User, Worklog, WorklogDictionary, Worklogs } from "./interfaces";
 export declare function getUsers(): User[];
 export declare function getColumnNames(): string[];
 export declare function getWorklogs(): Promise<any>;

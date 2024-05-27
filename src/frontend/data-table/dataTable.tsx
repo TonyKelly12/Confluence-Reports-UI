@@ -61,7 +61,7 @@ export const TableSorted = () => {
     }
   
     eventSource = new EventSource(
-      `https://tempo-jira-api-production.up.railway.app/worklogs/data-table?startDate=2024-05-01&endDate=${endDate}`
+      `https://tempo-jira-api-production.up.railway.app/app-worklogs/data-table?startDate=2024-05-01&endDate=${endDate}`
     );
 
     eventSource.onmessage = (event) => {
@@ -101,7 +101,7 @@ export const TableSorted = () => {
     }
     console.log("startDate", startDate); 
     console.log("endDate", endDate);
-    const url = `https://tempo-jira-api-production.up.railway.app/worklogs/data-table?startDate=${startDate}&endDate=${endDate}`;
+    const url = `https://tempo-jira-api-production.up.railway.app/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}`;
    
     eventSource = new EventSource(url);
     
@@ -234,8 +234,9 @@ export const TableSorted = () => {
       "Issue ID",
       "Department",
       "Department Ledger Code",
-      "Account Name",
       "Account ID",
+      "Account Key",
+      "Account Name",
       "Issue Category",
       "Time Spent",
       "Billable",
@@ -246,9 +247,9 @@ export const TableSorted = () => {
         row["Author Name"]
       },${row["Created At"]},${row["Logged Date"]},${row["Issue Name"]},${
         row["Issue ID"]
-      },${row["Department"]},${row["Department Ledger Code"]},${
+      },${row["Department"]},${row["Department Ledger Code"]}${row["Account ID"]},${row["Account Key"]},${
         row["Account Name"]
-      },${row["Account ID"]},${row["Issue Category"]},${
+      },${row["Issue Category"]},${
         row["Time Spent"]
       },${row["Billable"]}`;
     });
