@@ -13,4 +13,4 @@ export declare const UserDB: {
     locale: string;
     self: string;
 }[];
-export declare const WorklogDB: import("./interfaces").Worklogs[][];
+export declare const WorklogDB: import("../interfaces/interfaces").Worklogs[][];

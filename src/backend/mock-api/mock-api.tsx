@@ -2,128 +2,12 @@ import {
   AvatarUrls,
   FilteredWorklog,
   FilteredWorklogData,
-  FormattedWorklog,
   IFilteredData,
-  RootTimeLogs,
   User,
   Worklog,
-  WorklogDictionary,
-  Worklogs,
-} from "./interfaces";
-import { createUserWorklogObjects, mapWorklogData } from "./reports";
-import { UserDB, WorklogDB } from "./mock-db";
+} from "../interfaces/interfaces";
+
 import { faker } from "@faker-js/faker";
-import axios from "axios";
-
-export function getUsers(): User[] {
-  return UserDB;
-}
-/*
-avatar: string;
-  authorID: string;
-  authorName: string;
-  userLink: string;
-  department: string;
-  departmentLedgerCode: string;
-  tempoWorklogId: number;
-  accountId: string;
-  accountName: string;
-  issueName: string;
-  issueId: string;
-  issueLink: string;
-  timeSpentSeconds: number;
-  billableSeconds: number;
-  loggedDate: string;
-  loggedTime: string;
-  createdAt: string;
-  updatedAt: string;
-*/
-export function getColumnNames(): string[] {
-  return [
-    "Avatar",
-    "Author ID",
-    "Employee Number",
-    "Author Name",
-    "User Link",
-    "Department",
-    "Department Ledger Code",
-    "Log ID",
-    "Account ID",
-    "Account Key",
-    "Account Name",
-    "Issue Name",
-    "Issue ID",
-    "Logged Date",
-    "Logged Time",
-    "Created At",
-    "Updated At",
-    "Issue Category",
-    "Time Spent",
-    "Billable",
-  ];
-}
-
-export async function getWorklogs() {
-  const resp = await axios.get(
-    "https://tempo-jira-api-production.up.railway.app/worklogs/data-table"
-  );
-  const data = await resp.data;
-  console.log("data", data);
-  return data;
-}
-
-// Fix below
-export async function getDateRangeLogs(startDate: string, endDate: string) {
-  const logs = await getWorklogs();
-  const start = new Date(startDate);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(endDate);
-  end.setHours(23, 59, 59, 999);
-
-  // const filteredLogs = logs.filter((log) => {
-  //   const logDate = new Date(log["Logged Date"]);
-  //   logDate.setHours(0, 0, 0, 0);
-  //   return logDate >= start && logDate <= end;
-  // });
-
-  console.log("filteredLogs", logs);
-  return logs;
-}
-
-export async function searchByText(text: string) {
-  const logs = await getWorklogs();
-  return logs.filter((log) => {
-    return (
-      log["Author Name"].toLowerCase().includes(text.toLowerCase()) ||
-      log["Issue Name"].toLowerCase().includes(text.toLowerCase()) ||
-      log["Department"].toLowerCase().includes(text.toLowerCase()) ||
-      log["Account Name"].toLowerCase().includes(text.toLowerCase())
-    );
-  });
-  // Remove empty sub-arrays
-}
-
-export async function getWorklogByProject(
-  project: string
-): Promise<Worklogs[][]> {
-  const logs = await getWorklogs();
-  return logs.filter((log) => {
-    return log.filter((lg) => {
-      return lg.Worklog.issue.issueName === project;
-    });
-  });
-}
-
-export function getUserWorklogDictionary(): WorklogDictionary[] {
-  const users = this.getUsers();
-  const initWorklogDictionary = createUserWorklogObjects(users);
-  // ToDO: mock-worklogs should be generated from the same data source as users so id's match
-  const worklogs = this.getWorklogs();
-  const worklogDictionary = mapWorklogData(initWorklogDictionary, worklogs);
-  // await saveJsonToFile(users, 'employees.json');
-  /// await convertWorklogDictionaryToCsvAndSave(worklogDictionary, 'DRC-Finance-Sample.csv');
-  return worklogDictionary;
-}
 
 export function generateAvatarUrls(): AvatarUrls {
   return {
@@ -162,6 +46,7 @@ function generateUUID(number: number): string[] {
   }
   return uuids;
 }
+
 export function generateMockWorklog(number: number): Worklog[] {
   const userList = generateMockUsers(number);
   const logs: Worklog[] = [];

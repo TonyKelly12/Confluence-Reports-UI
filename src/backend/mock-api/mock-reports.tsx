@@ -1,4 +1,4 @@
-import { WorklogDictionary, FilteredWorklogData, User} from "./interfaces";
+import { WorklogDictionary, FilteredWorklogData, User} from "../interfaces/interfaces";
 
 
 export function createUserWorklogObjects(users: User[]) {

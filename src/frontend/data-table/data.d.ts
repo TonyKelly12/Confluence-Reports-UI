@@ -1,2 +1,14 @@
-export declare function getWorklogByDateRange(startDate: string, endDate: string): Promise<any>;
-export declare function getWorklogByUser(text: string): Promise<any>;
+declare const fetchColumnNames: (setColumnNames: any, initializeVisibility: any, setVisibleColumns: any) => Promise<void>;
+declare const initData: (setFilteredData: any, setIsLoading: any, endDate: any) => () => void;
+declare const getWorklogByDateRange: (startDate: any, endDate: any, setFilteredData: any, setIsLoading: any) => () => void;
+declare const searchByText: (searchText: any, filteredData: any, setSearchData: any, setSearchText: any) => void;
+declare const formatDate: (date: Date) => string;
+declare const onFromDateChange: (value: any, setIsLoading: any, setFromDate: any) => Promise<void>;
+declare const onToDateChange: (value: any, setIsLoading: any, setToDate: any) => Promise<void>;
+declare const debouncedSearch: any;
+declare const onNameInputChange: (event: any, debouncedSearch: any) => void;
+declare const exportCSVData: (filteredData: any) => void;
+declare const exportJSONData: (getWorklogByDateRange: any, selectedFromDate: any, selectedToDate: any) => Promise<void>;
+declare const initializeVisibility: (columns: any, setVisibleColumns: any) => void;
+declare const handleColumnVisibilityChange: (column: any, setVisibleColumns: any) => void;
+export { fetchColumnNames, initData, getWorklogByDateRange, searchByText, formatDate, onFromDateChange, onToDateChange, debouncedSearch, onNameInputChange, exportCSVData, exportJSONData, initializeVisibility, handleColumnVisibilityChange, };

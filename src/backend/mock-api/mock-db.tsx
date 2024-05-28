@@ -1,4 +1,4 @@
-import { RootTimeLogs } from "./interfaces";
+import { RootTimeLogs } from "../interfaces/interfaces";
 
 
 
