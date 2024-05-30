@@ -1,9 +1,17 @@
 // dataTableUtils.ts
+import { subWeeks } from "date-fns";
 import * as util from "../../backend/util";
 import { debounce } from "lodash";
 
-
-const fetchColumnNames = async (setColumnNames, initializeVisibility, setVisibleColumns) => {
+export const API_KEY =
+  "ATATT3xFfGF0_So7UzB9Lmm5W7wEY4xJZf43baOBZU3JctTj0VF6kUvlUGQoyJgPLUhcJo3SLWhjFwbFuRZ0aWGvuwaveckYncZsKdRblQNhFXYA7zHgfK0VFBzC0VRLcCtvZJYkm1kllmAxPu7ErtX5JYGNGMxjXrSgrNrwVWcqFrxrTW3mLps=025EB935";
+export const API_BASE_URL = "https://tempo-jira-api-production.up.railway.app";
+export const JIRA_BASE_URL = "https://datarecognitioncorp.atlassian.net";
+const fetchColumnNames = async (
+  setColumnNames,
+  initializeVisibility,
+  setVisibleColumns
+) => {
   const response = await util.getColumnNames();
   setColumnNames(response);
   initializeVisibility(response, setVisibleColumns);
@@ -15,9 +23,9 @@ const initData = (setFilteredData, setIsLoading, endDate) => {
     eventSource.close();
     setFilteredData([]);
   }
-
+  const startDate = subWeeks(endDate, 1).toISOString().split("T")[0];
   eventSource = new EventSource(
-    `https://tempo-jira-api-production.up.railway.app/app-worklogs/data-table?startDate=2024-05-01&endDate=${endDate}`
+    `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&api-key=${API_KEY}`
   );
 
   eventSource.onmessage = (event) => {
@@ -50,7 +58,7 @@ const getWorklogByDateRange = (
     setFilteredData([]);
   }
 
-  const url = `https://tempo-jira-api-production.up.railway.app/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}`;
+  const url = `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&api-key=${API_KEY}`;
   eventSource = new EventSource(url);
 
   eventSource.onmessage = (event) => {
@@ -77,14 +85,17 @@ const getWorklogByDateRange = (
   };
 };
 
-const searchByText = (searchText, filteredData, setSearchData, setSearchText) => {
+const searchByText = (
+  searchText,
+  filteredData,
+  setSearchData,
+  setSearchText
+) => {
   if (searchText) {
     const searchData = filteredData.filter((log) => {
       return (
         log["Author Name"]?.toLowerCase().includes(searchText.toLowerCase()) ||
-        log["Account Name"]
-          ?.toLowerCase()
-          .includes(searchText.toLowerCase()) ||
+        log["Account Name"]?.toLowerCase().includes(searchText.toLowerCase()) ||
         log["Department"]?.toLowerCase().includes(searchText.toLowerCase())
       );
     });
@@ -134,21 +145,22 @@ const exportCSVData = (filteredData) => {
     "Author ID",
     "Employee Number",
     "Author Name",
-    "Created At",
-    "Logged Date",
-    "Issue Name",
-    "Issue ID",
     "Department",
     "Department Ledger Code",
+    "Log ID",
     "Account ID",
     "Account Key",
     "Account Name",
+    "Issue Name",
+    "Issue ID",
+    "Logged Date",
+    "Logged Time",
     "Issue Category",
     "Time Spent",
     "Billable",
   ];
   const csv = filteredData.map((row) => {
-    return `${row["Author ID"]},${row["Employee Number"]},${row["Author Name"]},${row["Created At"]},${row["Logged Date"]},${row["Issue Name"]},${row["Issue ID"]},${row["Department"]},${row["Department Ledger Code"]}${row["Account ID"]},${row["Account Key"]},${row["Account Name"]},${row["Issue Category"]},${row["Time Spent"]},${row["Billable"]}`;
+    return `${row["Author ID"]},${row["Employee Number"]},${row["Author Name"]},${row["Department"]},${row["Department Ledger Code"]},${row["Log ID"]},${row["Account ID"]},${row["Account Key"]},${row["Account Name"]},${row["Issue Name"]},${row["Issue ID"]},${row["Logged Date"]},${row["Logged Time"]},${row["Issue Category"]},${row["Time Spent"]},${row["Billable"]}`;
   });
   csv.unshift(headers.join(","));
   const csvString = csv.join("\n");
@@ -160,7 +172,11 @@ const exportCSVData = (filteredData) => {
   csvLink.click();
 };
 
-const exportJSONData = async (getWorklogByDateRange, selectedFromDate, selectedToDate) => {
+const exportJSONData = async (
+  getWorklogByDateRange,
+  selectedFromDate,
+  selectedToDate
+) => {
   const data = await getWorklogByDateRange(selectedFromDate, selectedToDate);
   const jsonString = JSON.stringify(data, null, 2);
   const jsonBlob = new Blob([jsonString], { type: "application/json" });

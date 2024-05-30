@@ -26,7 +26,6 @@ import {
   initData,
   getWorklogByDateRange,
   searchByText,
-  formatDate,
   onFromDateChange,
   onToDateChange,
   debouncedSearch,
@@ -36,12 +35,14 @@ import {
   initializeVisibility,
   handleColumnVisibilityChange,
 } from "./data"; // Adjust the path accordingly
-import { subMonths } from "date-fns";
+import { subWeeks } from "date-fns";
+
+export const JIRA_BASE_URL = 'https://datarecognitioncorp.atlassian.net'
 
 export const TableSorted = () => {
-  const baseURL = "https://datarecognitioncorp.atlassian.net";
+  const baseURL = JIRA_BASE_URL
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-  const defaultFromDate = subMonths(new Date(), 2).toISOString().split("T")[0];
+  const defaultFromDate = subWeeks(new Date(), 1).toISOString().split("T")[0];
   const defaultToDate = new Date().toISOString().split("T")[0];
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFromDate, setFromDate] = useState(defaultFromDate);

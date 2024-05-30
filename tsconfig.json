@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
-  "files": [ "webpack.config.js", "src/index.js", ],
-  "include": ["src/**/*.jsx", "src/index.tsx", "src/**/*.ts", "src/**/*.tsx",],
+  "files": [ "webpack.config.js", "src/index.js", "src/backend/tokens.tsx"],
+  "include": ["src/**/*.jsx", "src/index.tsx", "src/**/*.ts", "src/**/*.tsx","src/backend/tokens.tsx"],
   "exclude": ["node_modules", "dist", "build", "coverage", "webpack.config.js","src/**/*.d.ts"],
   "references": [
     {

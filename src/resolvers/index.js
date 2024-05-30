@@ -2,10 +2,10 @@ import Resolver from '@forge/resolver';
 
 const resolver = new Resolver();
 
-resolver.define('getText', (req) => {
+resolver.define('getEnv', (req) => {
   console.log(req);
 
-  return 'Hello, world!';
+  return process.env;
 });
 
 export const handler = resolver.getDefinitions();
