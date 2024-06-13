@@ -17,8 +17,9 @@ const fetchColumnNames = async (
   initializeVisibility(response, setVisibleColumns);
 };
 
-const initData = (setFilteredData, setIsLoading, endDate) => {
+const initData = (setFilteredData, setIsLoading, setProgress, endDate) => {
   let eventSource;
+  let streamEnded = false;
   if (eventSource) {
     eventSource.close();
     setFilteredData([]);
@@ -27,22 +28,54 @@ const initData = (setFilteredData, setIsLoading, endDate) => {
   eventSource = new EventSource(
     `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&api-key=${API_KEY}`
   );
-
+  let prevProgress = 0;
   eventSource.onmessage = (event) => {
-    const newWorklogs = JSON.parse(event.data);
-    if (Array.isArray(newWorklogs) && newWorklogs.length > 0) {
-      setFilteredData((prevWorklogs) => [...prevWorklogs, ...newWorklogs]);
+    console.log("event.data", event.data);
+    const eventData = JSON.parse(event.data);
+    console.log(eventData.message ? eventData.message : "No message");
+    if (eventData.message === "End of stream") {
+      console.log("End of stream");
+      console.log(eventData);
+      setIsLoading(false);
+      setProgress(1);
+      streamEnded = true;
+      return eventSource.close();
+    }
+    const { totalCount, formattedWorklogs } = eventData;
+    console.log("totalCount", totalCount);
+    if (Array.isArray(formattedWorklogs) && formattedWorklogs.length > 0) {
+      setFilteredData((prevWorklogs) => [
+        ...prevWorklogs,
+        ...formattedWorklogs,
+      ]);
       setIsLoading(false);
     }
+    setProgress(() => {
+      const newProgress =
+        prevProgress && formattedWorklogs
+          ? prevProgress + formattedWorklogs.length
+          : 0;
+      console.log("newProgress", newProgress);
+
+      const progressFraction = newProgress / totalCount;
+      console.log("progressFraction", progressFraction);
+      return progressFraction;
+    });
+    prevProgress = formattedWorklogs ? formattedWorklogs.length : 0;
   };
 
   eventSource.onerror = (error) => {
-    console.error("Failed to connect to the server or stream closed", error);
-    eventSource.close();
+    if (!streamEnded) {
+      console.error("Failed to connect to the server or stream closed", error);
+      console.log(error);
+      setProgress(1);
+      eventSource.close();
+    }
   };
 
   return () => {
     eventSource.close();
+    setProgress(1);
   };
 };
 
@@ -50,7 +83,8 @@ const getWorklogByDateRange = (
   startDate,
   endDate,
   setFilteredData,
-  setIsLoading
+  setIsLoading,
+  setProgress
 ) => {
   let eventSource;
   if (eventSource) {
@@ -77,6 +111,7 @@ const getWorklogByDateRange = (
 
   eventSource.onerror = (error) => {
     console.error("Failed to connect to the server or stream closed", error);
+    setProgress(1);
     eventSource.close();
   };
 

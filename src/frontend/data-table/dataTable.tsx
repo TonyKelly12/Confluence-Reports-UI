@@ -19,6 +19,8 @@ import {
   Icon,
   Toggle,
   User,
+  Text,
+  ProgressBar,
 } from "@forge/react";
 import React, { Fragment, useState, useEffect } from "react";
 import {
@@ -37,10 +39,10 @@ import {
 } from "./data"; // Adjust the path accordingly
 import { subWeeks } from "date-fns";
 
-export const JIRA_BASE_URL = 'https://datarecognitioncorp.atlassian.net'
+export const JIRA_BASE_URL = "https://datarecognitioncorp.atlassian.net";
 
 export const TableSorted = () => {
-  const baseURL = JIRA_BASE_URL
+  const baseURL = JIRA_BASE_URL;
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const defaultFromDate = subWeeks(new Date(), 1).toISOString().split("T")[0];
   const defaultToDate = new Date().toISOString().split("T")[0];
@@ -53,16 +55,17 @@ export const TableSorted = () => {
   const [visibleColumns, setVisibleColumns] = useState({});
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [searchData, setSearchData] = useState<any[]>([]);
+  const [progress, setProgress] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
   const endDate = new Date().toISOString().split("T")[0];
-  const tableDataToUse = searchData && searchData.length > 0 ? searchData : filteredData;
+  const tableDataToUse =
+    searchData && searchData.length > 0 ? searchData : filteredData;
 
   useEffect(() => {
     fetchColumnNames(setColumnNames, initializeVisibility, setVisibleColumns);
-    console.log("Column Names: ", columnNames);
-    const closeEventSource = initData(setFilteredData, setIsLoading, endDate);
+    const closeEventSource = initData(setFilteredData, setIsLoading, setProgress, endDate);
     return closeEventSource;
   }, []);
 
@@ -71,7 +74,8 @@ export const TableSorted = () => {
       selectedFromDate,
       selectedToDate,
       setFilteredData,
-      setIsLoading
+      setIsLoading,
+      setProgress
     );
     setFilteredData([]);
     return closeEventSource;
@@ -105,29 +109,28 @@ export const TableSorted = () => {
     handleColumnVisibilityChange(column, setVisibleColumns);
   };
 
-    // Styles //
-    const cardStyle = xcss({
-      width: "70%",
-      backgroundColor: "color.background.accent.gray.subtlest",
-      padding: "space.200",
-      borderRadius: "border.radius",
-      boxShadow: "elevation.shadow.raised",
-      transitionDuration: "200ms",
-      listStyle: "none",
-      "::before": {
-        paddingInlineEnd: "space.050",
-      },
-      "::after": {
-        paddingInlineStart: "space.050",
-      },
-      ":hover": {
-        backgroundColor: "color.background.accent.blue.subtler.hovered",
-        color: "color.text.inverse",
-        transform: "scale(1.02)",
-      },
-    });
-    // UI //
-  
+  // Styles //
+  const cardStyle = xcss({
+    width: "70%",
+    backgroundColor: "color.background.accent.gray.subtlest",
+    padding: "space.200",
+    borderRadius: "border.radius",
+    boxShadow: "elevation.shadow.raised",
+    transitionDuration: "200ms",
+    listStyle: "none",
+    "::before": {
+      paddingInlineEnd: "space.050",
+    },
+    "::after": {
+      paddingInlineStart: "space.050",
+    },
+    ":hover": {
+      backgroundColor: "color.background.accent.blue.subtler.hovered",
+      color: "color.text.inverse",
+      transform: "scale(1.02)",
+    },
+  });
+  // UI //
 
   return (
     <Fragment>
@@ -155,7 +158,9 @@ export const TableSorted = () => {
             <Label labelFor="default-name-example">
               Search By Name / Account / Issue
             </Label>
-            <TextArea onChange={(e) => onNameInputChangeHandler(e.target.value)} />
+            <TextArea
+              onChange={(e) => onNameInputChangeHandler(e.target.value)}
+            />
           </Stack>
         </Inline>
         <Inline space="space.200" alignInline="end">
@@ -177,8 +182,17 @@ export const TableSorted = () => {
           </Stack>
         </Inline>
       </Inline>
+      <Box padding="space.200" backgroundColor="color.background.accent.blue.subtlest" >
+        <Text>
+          Data Loading Progress
+        </Text>
+        <ProgressBar value={progress} />
+      </Box>
       <Inline space="space.200">
-        <Box padding="space.400" backgroundColor="color.background.neutral.subtle">
+        <Box
+          padding="space.400"
+          backgroundColor="color.background.neutral.subtle"
+        >
           <DynamicTable
             defaultSortKey="Logged Date"
             rowsPerPage={15}
@@ -207,7 +221,9 @@ export const TableSorted = () => {
                             break;
                           case "User Link":
                             content = (
-                              <Link href={`${baseURL}/wiki/people/${row["Author ID"]}`}>
+                              <Link
+                                href={`${baseURL}/wiki/people/${row["Author ID"]}`}
+                              >
                                 {value.toString()}
                               </Link>
                             );
@@ -254,7 +270,10 @@ export const TableSorted = () => {
                 <ModalTitle>Column Visibility</ModalTitle>
               </ModalHeader>
               <ModalBody>
-                <Box backgroundColor="color.background.accent.blue.subtlest" padding="space.400">
+                <Box
+                  backgroundColor="color.background.accent.blue.subtlest"
+                  padding="space.400"
+                >
                   <Stack alignBlock="center">
                     <Label labelFor="columnVisibility">Column Visibility</Label>
                     {columnNames.map((column) => (
@@ -262,7 +281,9 @@ export const TableSorted = () => {
                         key={column}
                         label={column}
                         isChecked={visibleColumns[column]}
-                        onChange={() => handleColumnVisibilityChangeHandler(column)}
+                        onChange={() =>
+                          handleColumnVisibilityChangeHandler(column)
+                        }
                       />
                     ))}
                   </Stack>
