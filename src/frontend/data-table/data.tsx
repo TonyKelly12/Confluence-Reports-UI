@@ -1,5 +1,5 @@
 // dataTableUtils.ts
-import { subWeeks } from "date-fns";
+import { set, subWeeks } from "date-fns";
 import * as util from "../../backend/util";
 import { debounce } from "lodash";
 
@@ -16,8 +16,10 @@ const fetchColumnNames = async (
   setColumnNames(response);
   initializeVisibility(response, setVisibleColumns);
 };
+const BATCH_SIZE = 3000; // Replace with your known batch size
+const MAX_PROGRESS_BEFORE_COMPLETE = 95; // Cap progress at 95% before final batch
 
-const initData = (setFilteredData, setIsLoading, endDate) => {
+const initData = (setFilteredData, setIsLoading, setProgress, endDate) => {
   let eventSource;
   if (eventSource) {
     eventSource.close();
@@ -27,12 +29,24 @@ const initData = (setFilteredData, setIsLoading, endDate) => {
   eventSource = new EventSource(
     `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&api-key=${API_KEY}`
   );
+  let totalData = 0;  // Total data received
+  let totalCount = 0; // Total count of worklogs
 
   eventSource.onmessage = (event) => {
-    const newWorklogs = JSON.parse(event.data);
-    if (Array.isArray(newWorklogs) && newWorklogs.length > 0) {
-      setFilteredData((prevWorklogs) => [...prevWorklogs, ...newWorklogs]);
+    const data = JSON.parse(event.data);
+    if (data) {
+      totalCount = data.length
+      console.log("data: ", data);
+    } else if (Array.isArray(data) && data.length > 0) {
+      setFilteredData((prevWorklogs) => [...prevWorklogs, ...data]);
       setIsLoading(false);
+
+      totalData += data.length;
+      const progress = Math.min(
+        (totalData / totalCount) * 100,
+        MAX_PROGRESS_BEFORE_COMPLETE
+      );
+      setProgress(progress);
     }
   };
 
@@ -50,7 +64,8 @@ const getWorklogByDateRange = (
   startDate,
   endDate,
   setFilteredData,
-  setIsLoading
+  setIsLoading,
+  setProgress
 ) => {
   let eventSource;
   if (eventSource) {
@@ -60,27 +75,44 @@ const getWorklogByDateRange = (
 
   const url = `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&api-key=${API_KEY}`;
   eventSource = new EventSource(url);
+  let totalData = 0;
+  let totalCount = 0; // Total count of worklogs
 
   eventSource.onmessage = (event) => {
-    const newWorklogs = JSON.parse(event.data);
-    if (Array.isArray(newWorklogs) && newWorklogs.length > 0) {
+    const data = JSON.parse(event.data);
+    if (data) {
+      totalCount = data.length;
+    } else if (Array.isArray(data) && data.length > 0) {
       setFilteredData((prevWorklogs) => {
         if (Array.isArray(prevWorklogs)) {
-          return [...prevWorklogs, ...newWorklogs];
+          return [...prevWorklogs, ...data];
         } else {
-          return [...newWorklogs];
+          return [...data];
         }
       });
       setIsLoading(false);
+      totalData += data.length;
+      let progress = Math.min(
+        (totalData / totalCount) * 100,
+        MAX_PROGRESS_BEFORE_COMPLETE
+      );
+      if (progress > 0.95) {
+        progress = 0.95;
+      }
+      console.log("progress value: ", progress);
+      setProgress(progress);
     }
   };
 
   eventSource.onerror = (error) => {
     console.error("Failed to connect to the server or stream closed", error);
+    setProgress(1);
     eventSource.close();
   };
 
   return () => {
+    console.log("closing event source");
+    setProgress(1);
     eventSource.close();
   };
 };

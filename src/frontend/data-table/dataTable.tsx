@@ -54,15 +54,18 @@ export const TableSorted = () => {
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [searchData, setSearchData] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [progress, setProgress] = useState(0);
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
   const endDate = new Date().toISOString().split("T")[0];
   const tableDataToUse = searchData && searchData.length > 0 ? searchData : filteredData;
+  
 
+  
   useEffect(() => {
     fetchColumnNames(setColumnNames, initializeVisibility, setVisibleColumns);
     console.log("Column Names: ", columnNames);
-    const closeEventSource = initData(setFilteredData, setIsLoading, endDate);
+    const closeEventSource = initData(setFilteredData, setIsLoading, setProgress, endDate);
     return closeEventSource;
   }, []);
 
@@ -71,7 +74,8 @@ export const TableSorted = () => {
       selectedFromDate,
       selectedToDate,
       setFilteredData,
-      setIsLoading
+      setIsLoading,
+      setProgress
     );
     setFilteredData([]);
     return closeEventSource;
@@ -126,9 +130,8 @@ export const TableSorted = () => {
         transform: "scale(1.02)",
       },
     });
+    
     // UI //
-  
-
   return (
     <Fragment>
       <Inline space="space.1000">

@@ -2,8 +2,8 @@ export declare const API_KEY = "ATATT3xFfGF0_So7UzB9Lmm5W7wEY4xJZf43baOBZU3JctTj
 export declare const API_BASE_URL = "https://tempo-jira-api-production.up.railway.app";
 export declare const JIRA_BASE_URL = "https://datarecognitioncorp.atlassian.net";
 declare const fetchColumnNames: (setColumnNames: any, initializeVisibility: any, setVisibleColumns: any) => Promise<void>;
-declare const initData: (setFilteredData: any, setIsLoading: any, endDate: any) => () => void;
-declare const getWorklogByDateRange: (startDate: any, endDate: any, setFilteredData: any, setIsLoading: any) => () => void;
+declare const initData: (setFilteredData: any, setIsLoading: any, setProgress: any, endDate: any) => () => void;
+declare const getWorklogByDateRange: (startDate: any, endDate: any, setFilteredData: any, setIsLoading: any, setProgress: any) => () => void;
 declare const searchByText: (searchText: any, filteredData: any, setSearchData: any, setSearchText: any) => void;
 declare const formatDate: (date: Date) => string;
 declare const onFromDateChange: (value: any, setIsLoading: any, setFromDate: any) => Promise<void>;
