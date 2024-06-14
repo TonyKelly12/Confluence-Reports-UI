@@ -2,12 +2,12 @@ export declare const API_KEY = "ATATT3xFfGF0_So7UzB9Lmm5W7wEY4xJZf43baOBZU3JctTj
 export declare const API_BASE_URL = "https://tempo-jira-api-production.up.railway.app";
 export declare const JIRA_BASE_URL = "https://datarecognitioncorp.atlassian.net";
 declare const fetchColumnNames: (setColumnNames: any, initializeVisibility: any, setVisibleColumns: any) => Promise<void>;
-declare const initData: (setFilteredData: any, setIsLoading: any, setProgress: any, endDate: any) => () => void;
-declare const getWorklogByDateRange: (startDate: any, endDate: any, setFilteredData: any, setIsLoading: any, setProgress: any) => () => void;
+declare const initData: (setFilteredData: any, setIsLoading: any, setProgress: any, endDate: any) => () => any;
+declare const getWorklogByDateRange: (startDate: any, endDate: any, setFilteredData: any, setIsLoading: any, setProgress: any) => () => any;
 declare const searchByText: (searchText: any, filteredData: any, setSearchData: any, setSearchText: any) => void;
 declare const formatDate: (date: Date) => string;
-declare const onFromDateChange: (value: any, setIsLoading: any, setFromDate: any) => Promise<void>;
-declare const onToDateChange: (value: any, setIsLoading: any, setToDate: any) => Promise<void>;
+declare const onFromDateChange: (value: any, setIsLoading: any, setFromDate: any, stopEventStream: any, clearFilteredData: any) => Promise<void>;
+declare const onToDateChange: (value: any, setIsLoading: any, setToDate: any, stopEventStream: any, clearFilteredData: any) => Promise<void>;
 declare const debouncedSearch: any;
 declare const onNameInputChange: (event: any, debouncedSearch: any) => void;
 declare const exportCSVData: (filteredData: any) => void;

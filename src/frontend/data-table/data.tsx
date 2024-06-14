@@ -17,6 +17,8 @@ const fetchColumnNames = async (
   initializeVisibility(response, setVisibleColumns);
 };
 
+const sessionId = 1234
+
 const initData = (setFilteredData, setIsLoading, setProgress, endDate) => {
   let eventSource;
   let streamEnded = false;
@@ -25,12 +27,13 @@ const initData = (setFilteredData, setIsLoading, setProgress, endDate) => {
     setFilteredData([]);
   }
   const startDate = subWeeks(endDate, 1).toISOString().split("T")[0];
+  
   eventSource = new EventSource(
-    `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&api-key=${API_KEY}`
+    `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&sessionId=${sessionId}&api-key=${API_KEY}`
   );
   let prevProgress = 0;
   eventSource.onmessage = (event) => {
-    console.log("event.data", event.data);
+
     const eventData = JSON.parse(event.data);
     console.log(eventData.message ? eventData.message : "No message");
     if (eventData.message === "End of stream") {
@@ -74,8 +77,9 @@ const initData = (setFilteredData, setIsLoading, setProgress, endDate) => {
   };
 
   return () => {
-    eventSource.close();
+    
     setProgress(1);
+    return eventSource;
   };
 };
 
@@ -92,21 +96,43 @@ const getWorklogByDateRange = (
     setFilteredData([]);
   }
 
-  const url = `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&api-key=${API_KEY}`;
+  const url = `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&sessionId=${sessionId}&api-key=${API_KEY}`;
   eventSource = new EventSource(url);
-
+  let streamEnded = false;
+  let prevProgress = 0;
   eventSource.onmessage = (event) => {
-    const newWorklogs = JSON.parse(event.data);
-    if (Array.isArray(newWorklogs) && newWorklogs.length > 0) {
-      setFilteredData((prevWorklogs) => {
-        if (Array.isArray(prevWorklogs)) {
-          return [...prevWorklogs, ...newWorklogs];
-        } else {
-          return [...newWorklogs];
-        }
-      });
+
+    const eventData = JSON.parse(event.data);
+    console.log(eventData.message ? eventData.message : "No message");
+    if (eventData.message === "End of stream") {
+      console.log("End of stream");
+      console.log(eventData);
+      setIsLoading(false);
+      setProgress(1);
+      streamEnded = true;
+      return eventSource.close();
+    }
+    const { totalCount, formattedWorklogs } = eventData;
+    console.log("totalCount", totalCount);
+    if (Array.isArray(formattedWorklogs) && formattedWorklogs.length > 0) {
+      setFilteredData((prevWorklogs) => [
+        ...prevWorklogs,
+        ...formattedWorklogs,
+      ]);
       setIsLoading(false);
     }
+    setProgress(() => {
+      const newProgress =
+        prevProgress && formattedWorklogs
+          ? prevProgress + formattedWorklogs.length
+          : 0;
+      console.log("newProgress", newProgress);
+
+      const progressFraction = newProgress / totalCount;
+      console.log("progressFraction", progressFraction);
+      return progressFraction;
+    });
+    prevProgress = formattedWorklogs ? formattedWorklogs.length : 0;
   };
 
   eventSource.onerror = (error) => {
@@ -116,10 +142,16 @@ const getWorklogByDateRange = (
   };
 
   return () => {
-    eventSource.close();
+    return eventSource
   };
 };
-
+const getRandomUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = (crypto.getRandomValues(new Uint8Array(1))[0] % 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 const searchByText = (
   searchText,
   filteredData,
@@ -152,17 +184,27 @@ const formatDate = (date: Date) => {
   return year + "-" + monthString + "-" + dayString;
 };
 
-const onFromDateChange = async (value, setIsLoading, setFromDate) => {
+const onFromDateChange = async (value, setIsLoading, setFromDate, stopEventStream, clearFilteredData) => {
+  console.log("onFromDateChange");
+  console.log("value", value);
   setIsLoading(true);
+  stopEventStream(); // Stop the event stream
+  clearFilteredData(); // Clear the filtered data
   const updatedFromDate = formatDate(new Date(value));
   const formate = formatDate(new Date(updatedFromDate));
+  console.log("formate", formate);
   setFromDate(formate);
 };
 
-const onToDateChange = async (value, setIsLoading, setToDate) => {
+const onToDateChange = async (value, setIsLoading, setToDate, stopEventStream, clearFilteredData) => {
+  console.log("onToDateChange");
+  console.log("value", value);
   setIsLoading(true);
+  stopEventStream(); // Stop the event stream
+  clearFilteredData(); 
   const updatedToDate = formatDate(new Date(value));
   const formate = formatDate(new Date(updatedToDate));
+  console.log("formate", formate);
   setToDate(formate);
 };
 

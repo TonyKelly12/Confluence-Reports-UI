@@ -22,7 +22,7 @@ import {
   Text,
   ProgressBar,
 } from "@forge/react";
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect, useRef } from "react";
 import {
   fetchColumnNames,
   initData,
@@ -38,6 +38,7 @@ import {
   handleColumnVisibilityChange,
 } from "./data"; // Adjust the path accordingly
 import { subWeeks } from "date-fns";
+import { es } from "@faker-js/faker";
 
 export const JIRA_BASE_URL = "https://datarecognitioncorp.atlassian.net";
 
@@ -57,28 +58,35 @@ export const TableSorted = () => {
   const [searchData, setSearchData] = useState<any[]>([]);
   const [progress, setProgress] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [eventSource, setEventSource] = useState(null);
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
-  const endDate = new Date().toISOString().split("T")[0];
   const tableDataToUse =
     searchData && searchData.length > 0 ? searchData : filteredData;
 
+ 
+  
   useEffect(() => {
     fetchColumnNames(setColumnNames, initializeVisibility, setVisibleColumns);
-    const closeEventSource = initData(setFilteredData, setIsLoading, setProgress, endDate);
-    return closeEventSource;
+    const eSource = initData(setFilteredData, setIsLoading, setProgress, defaultToDate);
+    setEventSource(eSource);
+    return eSource
   }, []);
 
   useEffect(() => {
-    const closeEventSource = getWorklogByDateRange(
+    stopEventStream(eventSource);
+    console.log("useEffect");
+    console.log("selectedFromDate", selectedFromDate);
+    console.log("selectedToDate", selectedToDate);
+    const eSource = getWorklogByDateRange(
       selectedFromDate,
       selectedToDate,
       setFilteredData,
       setIsLoading,
       setProgress
     );
+    setEventSource(eSource);
     setFilteredData([]);
-    return closeEventSource;
   }, [selectedFromDate, selectedToDate]);
 
   useEffect(() => {
@@ -86,11 +94,21 @@ export const TableSorted = () => {
   }, [searchText]);
 
   const onFromDateChangeHandler = async (value: string) => {
-    onFromDateChange(value, setIsLoading, setFromDate);
+    console.log("onFromDateChangeHandler");
+    console.log("value", value);
+    eventSource.close();
+   setEventSource(null);
+   setFilteredData([]);
+   await onFromDateChange(value, setIsLoading, setFromDate, stopEventStream, clearFilteredData);
   };
 
   const onToDateChangeHandler = async (value: string) => {
-    onToDateChange(value, setIsLoading, setToDate);
+    console.log("onToDateChangeHandler");
+    console.log("value", value);
+    eventSource.close();
+    setFilteredData([]);
+    setEventSource(null);
+   await onToDateChange(value, setIsLoading, setToDate, stopEventStream, clearFilteredData);
   };
 
   const onNameInputChangeHandler = (event) => {
@@ -130,6 +148,19 @@ export const TableSorted = () => {
       transform: "scale(1.02)",
     },
   });
+
+  const stopEventStream = (eventSource) => {
+    console.log("stopEventStream ran", eventSource);
+    if (eventSource && eventSource.close) {
+      console.log("stopping Event Stream", eventSource);
+      eventSource.current.close();
+      setEventSource(null);
+    }
+  };
+  
+  const clearFilteredData = () => {
+    setFilteredData([]);
+  };
   // UI //
 
   return (
@@ -184,7 +215,7 @@ export const TableSorted = () => {
       </Inline>
       <Box padding="space.200" backgroundColor="color.background.accent.blue.subtlest" >
         <Text>
-          Data Loading Progress
+          {progress === 1 ? "All Data Loaded Successfully" : "Data Loading In Progress...."}
         </Text>
         <ProgressBar value={progress} />
       </Box>
