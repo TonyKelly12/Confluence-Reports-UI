@@ -1,5 +1,5 @@
 // dataTableUtils.ts
-import { subWeeks } from "date-fns";
+import { subWeeks, addDays } from "date-fns";
 import * as util from "../../backend/util";
 import { debounce } from "lodash";
 
@@ -17,7 +17,7 @@ const fetchColumnNames = async (
   initializeVisibility(response, setVisibleColumns);
 };
 
-const sessionId = 1234
+const sessionId = 12345
 
 const initData = (setFilteredData, setIsLoading, setProgress, endDate) => {
   let eventSource;
@@ -26,10 +26,11 @@ const initData = (setFilteredData, setIsLoading, setProgress, endDate) => {
     eventSource.close();
     setFilteredData([]);
   }
-  const startDate = subWeeks(endDate, 1).toISOString().split("T")[0];
+  const endDateQuery = addDays(new Date(endDate), 2).toISOString().split("T")[0];
+  const startDate = subWeeks(endDateQuery, 1).toISOString().split("T")[0];
   
   eventSource = new EventSource(
-    `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&sessionId=${sessionId}&api-key=${API_KEY}`
+    `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDateQuery}&sessionId=${sessionId}&api-key=${API_KEY}`
   );
   let prevProgress = 0;
   eventSource.onmessage = (event) => {
@@ -95,8 +96,8 @@ const getWorklogByDateRange = (
     eventSource.close();
     setFilteredData([]);
   }
-
-  const url = `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&sessionId=${sessionId}&api-key=${API_KEY}`;
+  const endDateQuery = addDays(new Date(endDate), 2).toISOString().split("T")[0];
+  const url = `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDateQuery}&sessionId=${sessionId}&api-key=${API_KEY}`;
   eventSource = new EventSource(url);
   let streamEnded = false;
   let prevProgress = 0;

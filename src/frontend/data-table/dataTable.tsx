@@ -37,7 +37,7 @@ import {
   initializeVisibility,
   handleColumnVisibilityChange,
 } from "./data"; // Adjust the path accordingly
-import { subWeeks } from "date-fns";
+import { subWeeks, addDays } from "date-fns";
 import { es } from "@faker-js/faker";
 
 export const JIRA_BASE_URL = "https://datarecognitioncorp.atlassian.net";
@@ -291,7 +291,7 @@ export const TableSorted = () => {
             defaultSortOrder="ASC"
             isLoading={isLoading}
             highlightedRowIndex={Array.from({ length: 15 }, (_, i) => i * 2)}
-            sortKey={isChecked ? "Author Name" : "Author Name"}
+            sortKey={isChecked ? "Logged Date" : "Logged Date"}
           />
         </Box>
         <ModalTransition>
