@@ -11,7 +11,7 @@ declare const onToDateChange: (value: any, setIsLoading: any, setToDate: any, st
 declare const debouncedSearch: any;
 declare const onNameInputChange: (event: any, debouncedSearch: any) => void;
 declare const exportCSVData: (filteredData: any) => void;
-declare const exportJSONData: (getWorklogByDateRange: any, selectedFromDate: any, selectedToDate: any) => Promise<void>;
+declare const exportJSONData: (filteredData: any) => Promise<void>;
 declare const initializeVisibility: (columns: any, setVisibleColumns: any) => void;
 declare const handleColumnVisibilityChange: (column: any, setVisibleColumns: any) => void;
 export { fetchColumnNames, initData, getWorklogByDateRange, searchByText, formatDate, onFromDateChange, onToDateChange, debouncedSearch, onNameInputChange, exportCSVData, exportJSONData, initializeVisibility, handleColumnVisibilityChange, };

@@ -251,11 +251,10 @@ const exportCSVData = (filteredData) => {
 };
 
 const exportJSONData = async (
-  getWorklogByDateRange,
-  selectedFromDate,
-  selectedToDate
+  
+  filteredData
 ) => {
-  const data = await getWorklogByDateRange(selectedFromDate, selectedToDate);
+  const data = filteredData;
   const jsonString = JSON.stringify(data, null, 2);
   const jsonBlob = new Blob([jsonString], { type: "application/json" });
   const jsonUrl = URL.createObjectURL(jsonBlob);

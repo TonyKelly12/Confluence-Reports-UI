@@ -120,7 +120,7 @@ export const TableSorted = () => {
   };
 
   const exportJSONHandler = () => {
-    exportJSONData(getWorklogByDateRange, selectedFromDate, selectedToDate);
+    exportJSONData(filteredData);
   };
 
   const handleColumnVisibilityChangeHandler = (column) => {
