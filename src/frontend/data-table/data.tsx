@@ -1,5 +1,5 @@
 // dataTableUtils.ts
-import { subWeeks, addDays } from "date-fns";
+import { subWeeks, addDays, subDays } from "date-fns";
 import * as util from "../../backend/util";
 import { debounce } from "lodash";
 
@@ -26,11 +26,11 @@ const initData = (setFilteredData, setIsLoading, setProgress, endDate) => {
     eventSource.close();
     setFilteredData([]);
   }
-  const endDateQuery = addDays(new Date(endDate), 2).toISOString().split("T")[0];
-  const startDate = subWeeks(endDateQuery, 1).toISOString().split("T")[0];
-  
+ // const endDateQuery = addDays(new Date(endDate), 2).toISOString().split("T")[0];
+  const startDate = subWeeks(endDate, 1).toISOString().split("T")[0];
+ 
   eventSource = new EventSource(
-    `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDateQuery}&sessionId=${sessionId}&api-key=${API_KEY}`
+    `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&sessionId=${sessionId}&api-key=${API_KEY}`
   );
   let prevProgress = 0;
   eventSource.onmessage = (event) => {
@@ -39,14 +39,12 @@ const initData = (setFilteredData, setIsLoading, setProgress, endDate) => {
     console.log(eventData.message ? eventData.message : "No message");
     if (eventData.message === "End of stream") {
       console.log("End of stream");
-      console.log(eventData);
       setIsLoading(false);
       setProgress(1);
       streamEnded = true;
       return eventSource.close();
     }
     const { totalCount, formattedWorklogs } = eventData;
-    console.log("totalCount", totalCount);
     if (Array.isArray(formattedWorklogs) && formattedWorklogs.length > 0) {
       setFilteredData((prevWorklogs) => [
         ...prevWorklogs,
@@ -59,10 +57,7 @@ const initData = (setFilteredData, setIsLoading, setProgress, endDate) => {
         prevProgress && formattedWorklogs
           ? prevProgress + formattedWorklogs.length
           : 0;
-      console.log("newProgress", newProgress);
-
       const progressFraction = newProgress / totalCount;
-      console.log("progressFraction", progressFraction);
       return progressFraction;
     });
     prevProgress = formattedWorklogs ? formattedWorklogs.length : 0;
@@ -96,8 +91,9 @@ const getWorklogByDateRange = (
     eventSource.close();
     setFilteredData([]);
   }
-  const endDateQuery = addDays(new Date(endDate), 2).toISOString().split("T")[0];
-  const url = `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDateQuery}&sessionId=${sessionId}&api-key=${API_KEY}`;
+  console.log("work-startDate", startDate);
+  console.log("work-endDate", endDate);
+  const url = `${API_BASE_URL}/app-worklogs/data-table?startDate=${startDate}&endDate=${endDate}&sessionId=${sessionId}&api-key=${API_KEY}`;
   eventSource = new EventSource(url);
   let streamEnded = false;
   let prevProgress = 0;
@@ -107,14 +103,12 @@ const getWorklogByDateRange = (
     console.log(eventData.message ? eventData.message : "No message");
     if (eventData.message === "End of stream") {
       console.log("End of stream");
-      console.log(eventData);
       setIsLoading(false);
       setProgress(1);
       streamEnded = true;
       return eventSource.close();
     }
     const { totalCount, formattedWorklogs } = eventData;
-    console.log("totalCount", totalCount);
     if (Array.isArray(formattedWorklogs) && formattedWorklogs.length > 0) {
       setFilteredData((prevWorklogs) => [
         ...prevWorklogs,
@@ -127,10 +121,9 @@ const getWorklogByDateRange = (
         prevProgress && formattedWorklogs
           ? prevProgress + formattedWorklogs.length
           : 0;
-      console.log("newProgress", newProgress);
+  
 
       const progressFraction = newProgress / totalCount;
-      console.log("progressFraction", progressFraction);
       return progressFraction;
     });
     prevProgress = formattedWorklogs ? formattedWorklogs.length : 0;
@@ -157,17 +150,22 @@ const searchByText = (
   searchText,
   filteredData,
   setSearchData,
-  setSearchText
+  setSearchText, 
 ) => {
   if (searchText) {
     const searchData = filteredData.filter((log) => {
       return (
         log["Author Name"]?.toLowerCase().includes(searchText.toLowerCase()) ||
         log["Account Name"]?.toLowerCase().includes(searchText.toLowerCase()) ||
-        log["Department"]?.toLowerCase().includes(searchText.toLowerCase())
+        log["Department"]?.toLowerCase().includes(searchText.toLowerCase()) ||
+        log["Account ID"]?.toString().includes(searchText.toString()) ||
+        log["Account Key"]?.toLowerCase().includes(searchText.toLowerCase()) ||
+        log["Issue Name"]?.toLowerCase().includes(searchText.toLowerCase()) ||
+        log["Employee Number"].toString().includes(searchText.toString())
       );
     });
     setSearchData(searchData);
+  
   } else {
     setSearchText("");
     setSearchData(null);
@@ -175,47 +173,52 @@ const searchByText = (
 };
 
 const formatDate = (date: Date) => {
+  console.log("date", date);
   const day = date.getDate();
   const month = date.getMonth() + 1;
   const year = date.getFullYear().toString();
 
   const dayString = (day < 10 ? "0" + day : day).toString();
   const monthString = month < 10 ? "0" + month : month;
-
+  console.log("year", year);
+  console.log("monthString", monthString);
+  console.log("dayString", dayString);
   return year + "-" + monthString + "-" + dayString;
 };
 
-const onFromDateChange = async (value, setIsLoading, setFromDate, stopEventStream, clearFilteredData) => {
-  console.log("onFromDateChange");
+const onFromDateChange = async (value, setIsLoading, setFromDate, stopEventStream, eventSource, clearFilteredData) => {
+  console.log("onFromDateChange2");
   console.log("value", value);
   setIsLoading(true);
-  stopEventStream(); // Stop the event stream
+  stopEventStream(eventSource); // Stop the event stream
   clearFilteredData(); // Clear the filtered data
-  const updatedFromDate = formatDate(new Date(value));
-  const formate = formatDate(new Date(updatedFromDate));
-  console.log("formate", formate);
-  setFromDate(formate);
+  console.log("date change", new Date(value));
+  console.log("date change", addDays(new Date(value), 1));
+  const updatedFromDate = formatDate(addDays(new Date(value), 1));
+  
+  console.log("formate", updatedFromDate);
+  setFromDate(updatedFromDate);
 };
 
-const onToDateChange = async (value, setIsLoading, setToDate, stopEventStream, clearFilteredData) => {
-  console.log("onToDateChange");
+const onToDateChange = async (value, setIsLoading, setToDate, stopEventStream, eventSource, clearFilteredData) => {
+  console.log("onToDateChange2");
   console.log("value", value);
   setIsLoading(true);
-  stopEventStream(); // Stop the event stream
+  stopEventStream(eventSource); // Stop the event stream
   clearFilteredData(); 
-  const updatedToDate = formatDate(new Date(value));
-  const formate = formatDate(new Date(updatedToDate));
-  console.log("formate", formate);
-  setToDate(formate);
+  const updatedToDate = formatDate(addDays(new Date(value), 1));
+  
+  console.log("formate",updatedToDate);
+  setToDate(updatedToDate);
 };
 
 const debouncedSearch = debounce((text, setSearchText) => {
   setSearchText(text);
 }, 300);
 
-const onNameInputChange = (event, debouncedSearch) => {
+const onNameInputChange = (event, setSearchText) => {
   const textboxData = event;
-  debouncedSearch(textboxData);
+ debouncedSearch(textboxData, setSearchText);
 };
 
 const exportCSVData = (filteredData) => {

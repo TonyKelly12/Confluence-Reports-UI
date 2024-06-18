@@ -38,7 +38,7 @@ import {
   handleColumnVisibilityChange,
 } from "./data"; // Adjust the path accordingly
 import { subWeeks, addDays } from "date-fns";
-import { es } from "@faker-js/faker";
+
 
 export const JIRA_BASE_URL = "https://datarecognitioncorp.atlassian.net";
 
@@ -76,8 +76,8 @@ export const TableSorted = () => {
   useEffect(() => {
     stopEventStream(eventSource);
     console.log("useEffect");
-    console.log("selectedFromDate", selectedFromDate);
-    console.log("selectedToDate", selectedToDate);
+    console.log("effectFromDate", selectedFromDate);
+    console.log("effectToDate", selectedToDate);
     const eSource = getWorklogByDateRange(
       selectedFromDate,
       selectedToDate,
@@ -99,7 +99,7 @@ export const TableSorted = () => {
     eventSource.close();
    setEventSource(null);
    setFilteredData([]);
-   await onFromDateChange(value, setIsLoading, setFromDate, stopEventStream, clearFilteredData);
+   await onFromDateChange(value, setIsLoading, setFromDate, stopEventStream, eventSource, clearFilteredData);
   };
 
   const onToDateChangeHandler = async (value: string) => {
@@ -108,11 +108,11 @@ export const TableSorted = () => {
     eventSource.close();
     setFilteredData([]);
     setEventSource(null);
-   await onToDateChange(value, setIsLoading, setToDate, stopEventStream, clearFilteredData);
+   await onToDateChange(value, setIsLoading, setToDate, stopEventStream, eventSource, clearFilteredData);
   };
 
   const onNameInputChangeHandler = (event) => {
-    onNameInputChange(event, debouncedSearch(setSearchText));
+    onNameInputChange(event,  setSearchText );
   };
 
   const exportCSVHandler = () => {
@@ -153,7 +153,7 @@ export const TableSorted = () => {
     console.log("stopEventStream ran", eventSource);
     if (eventSource && eventSource.close) {
       console.log("stopping Event Stream", eventSource);
-      eventSource.current.close();
+      eventSource.close();
       setEventSource(null);
     }
   };
@@ -173,6 +173,7 @@ export const TableSorted = () => {
               id="fromDatePicker"
               onChange={onFromDateChangeHandler}
               defaultValue={defaultFromDate}
+              maxDate={selectedToDate} // Disable dates before the selectedFromDate
             />
           </Stack>
           <Stack alignBlock="end">
@@ -181,6 +182,7 @@ export const TableSorted = () => {
               id="toDatePicker"
               onChange={onToDateChangeHandler}
               defaultValue={defaultToDate}
+              minDate={selectedFromDate} // Disable dates after the selectedToDate
             />
           </Stack>
         </Inline>
@@ -233,7 +235,7 @@ export const TableSorted = () => {
                 .map((column) => ({ key: column, content: column })),
             }}
             rows={
-              Array.isArray(filteredData) && filteredData.length > 0
+              Array.isArray(tableDataToUse) && tableDataToUse.length > 0
                 ? tableDataToUse.map((row, index) => {
                     const visibleEntries = Object.entries(row).filter((key) => {
                       return visibleColumns[key[0]];

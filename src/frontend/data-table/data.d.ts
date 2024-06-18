@@ -6,10 +6,10 @@ declare const initData: (setFilteredData: any, setIsLoading: any, setProgress: a
 declare const getWorklogByDateRange: (startDate: any, endDate: any, setFilteredData: any, setIsLoading: any, setProgress: any) => () => any;
 declare const searchByText: (searchText: any, filteredData: any, setSearchData: any, setSearchText: any) => void;
 declare const formatDate: (date: Date) => string;
-declare const onFromDateChange: (value: any, setIsLoading: any, setFromDate: any, stopEventStream: any, clearFilteredData: any) => Promise<void>;
-declare const onToDateChange: (value: any, setIsLoading: any, setToDate: any, stopEventStream: any, clearFilteredData: any) => Promise<void>;
+declare const onFromDateChange: (value: any, setIsLoading: any, setFromDate: any, stopEventStream: any, eventSource: any, clearFilteredData: any) => Promise<void>;
+declare const onToDateChange: (value: any, setIsLoading: any, setToDate: any, stopEventStream: any, eventSource: any, clearFilteredData: any) => Promise<void>;
 declare const debouncedSearch: any;
-declare const onNameInputChange: (event: any, debouncedSearch: any) => void;
+declare const onNameInputChange: (event: any, setSearchText: any) => void;
 declare const exportCSVData: (filteredData: any) => void;
 declare const exportJSONData: (filteredData: any) => Promise<void>;
 declare const initializeVisibility: (columns: any, setVisibleColumns: any) => void;
